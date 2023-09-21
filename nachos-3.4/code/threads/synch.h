@@ -38,6 +38,7 @@
 
 class Semaphore {
   public:
+
     Semaphore(const char* debugName, int initialValue);	// set initial value
     ~Semaphore();   					// de-allocate semaphore
     const char* getName() { return name;}			// debugging assist
@@ -48,7 +49,7 @@ class Semaphore {
   private:
     const char* name;        // useful for debugging
     int value;         // semaphore value, always >= 0
-    List *queue;       // threads waiting in P() for the value to be > 0
+    List *queue;       // threads waiting in P() for the value to be >
 };
 
 // The following class defines a "lock".  A lock can be BUSY or FREE.
@@ -65,6 +66,7 @@ class Semaphore {
 
 class Lock {
   public:
+    Thread * lockThread;
     Lock(const char* debugName);  		// initialize lock to be FREE
     ~Lock();				// deallocate lock
     const char* getName() { return name; }	// debugging assist
@@ -82,7 +84,7 @@ class Lock {
     // plus some other stuff you'll need to define
 
     List *queue;       // threads waiting on lock to become free
-    bool free; // keeps track of hte state of the lock
+    bool free; // keeps track of the state of the lock
 };
 
 // The following class defines a "condition variable".  A condition

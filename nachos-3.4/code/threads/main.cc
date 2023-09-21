@@ -54,12 +54,17 @@
 #include "system.h"
 
 #ifdef THREADS
-extern int testnum;
+// extern int testnum;
 #endif
+#include <string.h>
 
 // External functions used by this file
 
+#if defined(CHANGED) && defined(THREADS)
+extern void ThreadTest(int n, int randomSeed = 0, bool randomize = false), Copy(char *unixFile, char *nachosFile);
+#else
 extern void ThreadTest(void), Copy(char *unixFile, char *nachosFile);
+#endif
 extern void ElevatorTest(int numFloors, int numPersons);
 extern void Ping();
 extern void Print(char *file), PerformanceTest(void);
@@ -88,36 +93,50 @@ main(int argc, char **argv)
 
     DEBUG('t', "Entering main");
     (void) Initialize(argc, argv);
+	int randomSeed = 0;
+	bool randomize = false;
+	int testnum = 1;
 
 #ifdef THREADS
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
       argCount = 1;
       switch (argv[0][1]) {
+#ifdef CHANGED
+		case 'r':
+			if (strcmp(argv[0],"-rs") == 0) {
+				randomSeed = atoi(argv[1]);
+				randomize = true;
+				argCount++;
+			}
+			break;
+#endif
       case 'q':
+#ifdef CHANGED
         testnum = atoi(argv[1]);
         argCount++;
         break;
+#endif
       default:
-        testnum = 1;
+          testnum = 1;
         break;
       }
     }
-
-#if defined(CHANGED) && defined(HW1_CONDITION)
+#endif
+#ifndef CHANGED
 	Ping();
 #else
-    ThreadTest();
+    #if defined(CHANGED) && defined(THREADS)
+        ThreadTest(testnum, randomSeed, randomize);
+    #else
+        ThreadTest();
+    #endif
 #endif
 
 
 #if defined(CHANGED) && defined(HW1_ELEVATOR)
 	ElevatorTest(5, 5);
-#else
-    ThreadTest();
 #endif
 
-
-#endif
 
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
 	argCount = 1;
