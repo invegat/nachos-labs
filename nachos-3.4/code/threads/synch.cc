@@ -32,7 +32,7 @@
 //	"debugName" is an arbitrary name, useful for debugging.
 //	"initialValue" is the initial value of the semaphore.
 //----------------------------------------------------------------------
-
+#if defined(HW1_SEMAPHORES) || defined(EXTERN_SEMAPHORES)
 Semaphore::Semaphore(const char* debugName, int initialValue)
 {
     name = debugName;
@@ -73,7 +73,7 @@ Semaphore::P()
     value--; 					// semaphore available,
 						// consume its value
 
-    (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
+   // (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
 }
 
 //----------------------------------------------------------------------
@@ -96,7 +96,8 @@ Semaphore::V()
     value++;
     (void) interrupt->SetLevel(oldLevel);
 }
-
+#endif
+#if  defined(HW1_LOCKS) || defined(EXTERN_LOCKS)
 // Dummy functions -- so we can compile our later assignments
 // Note -- without a correct implementation of Condition::Wait(),
 // the test case in the network assignment won't work!
@@ -104,6 +105,7 @@ Lock::Lock(const char* debugName) {
     name = debugName;
     free = true;
     queue = new List;
+    lockThread = currentThread;
 }
 Lock::~Lock() {
     delete queue;
@@ -112,39 +114,67 @@ Lock::~Lock() {
 void Lock::Acquire() {
 
     // Disable interrupts -- similar to Semaphore P()
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
     // Check if lock is free
+    if (free) {
 
-    // If yes, make the lock not free anymore
-    free = false;
-
-    // Else, lock is not free -- add self to queue
-    // (keep checking for free lock while)
-
+        // If yes, make the lock not free anymore
+        free = false;
+    }
+    else {
+        // Else, lock is not free -- add self to queue
+        // (keep checking for free lock while)
+        while (!free) {
+	        queue->Append((void *)currentThread);
+            // so go to sleep
+            currentThread->Sleep();
+        }
+		free = false;
+    }
     // Enable interrupts
+    (void) interrupt->SetLevel(oldLevel);
+
 }
 void Lock::Release() {
 
     // disable interrupts
-
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);
     // check if thread has lock ... isHeldByCurrentThread ?
 
     // If not, do nothing
 
-    free = true;
+    if (isHeldByCurrentThread()) {
+        // If yes, release the lock and wakeup 1 of the waiting threads in queue
+        free = true;
+        Thread *thread = (Thread *)queue->Remove();
+        if (thread != NULL)	   // make thread ready, consuming the V immediately
+            scheduler->ReadyToRun(thread);
 
-    // If yes, release the lock and wakeup 1 of the waiting threads in queue
+    }
+    else {
+        DEBUG('e', "doing nothing???");
+    }
+
+
+    (void) interrupt->SetLevel(oldLevel);
 
     // enable interrupts
 
 }
 
 bool Lock::isHeldByCurrentThread() {
-
-    return true;
+    return (lockThread == currentThread);
+//    Thread * thread = (Thread *)queue->Remove();
+//    if (thread != NULL) {
+//        queue->Prepend(thread);
+//        return (thread == currentThread);
+//    }
+//    return (true);
+   //return (true);
 
 }
-
+#endif
 Condition::Condition(const char* debugName) {
     name = debugName; // init
     queue =  new List;
