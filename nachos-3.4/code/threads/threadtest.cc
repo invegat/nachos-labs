@@ -10,8 +10,9 @@
 // of liability and disclaimer of warranty provisions.
 
 #if defined(HW1_SEMAPHORES) || defined(HW1_LOCKS)
-#include <stdlib.h> // for -rs switch srand and rand
+#include <stdlib.h> // for -rs switch srand
 #endif
+
 //#ifdef HW1_SEMAPHORES
 //#include <time.h>
 //#include <ctime>
@@ -25,7 +26,7 @@
 Semaphore * semaphore = new Semaphore("semaphoreTest", 1);
 #endif
 #ifdef HW1_LOCKS
-Lock * lock;
+Lock * lock = new Lock("lockTest");
 #endif
 #endif
 ///static double pow (double x, double y);
@@ -41,8 +42,10 @@ int myPow (int x, int p) {
 
 
 // testnum is set in main.cc
-// int testnum = 1;
-
+extern int testnum;
+extern bool randomize;
+extern int randomSeed;
+extern int n;
 //----------------------------------------------------------------------
 // SimpleThread
 // 	Loop 5 times, yielding the CPU to another ready thread 
@@ -55,6 +58,7 @@ int myPow (int x, int p) {
 
 int SharedVariable;
 int numThreadsActive; // used to implement barrier upon completion
+extern int n;
 
 void SimpleThread(int which) {
     int num, val;
@@ -75,25 +79,19 @@ void SimpleThread(int which) {
         semaphore->V();
 #endif
 #ifdef HW1_LOCKS
-        lock->lockThread = currentThread;
         lock->Release();
 #endif
         currentThread->Yield();
-#ifdef HW1_LOCKS
-        lock->lockThread = currentThread;
-#endif
     }
     numThreadsActive--;
     while (numThreadsActive > 0) {
         currentThread->Yield();
         numThreadsActive--;
-#ifdef HW1_LOCKS
-        lock->lockThread = currentThread;
-#endif
     }
     val = SharedVariable;
     printf("Thread %d sees final value %d\n", which, val);
 }
+/*
 int getRandom(int n,int &map) {
 	int i = 0;
 	do {
@@ -102,30 +100,28 @@ int getRandom(int n,int &map) {
 	map = map ^ myPow(2,i);
 	return i;	 
 }
+*/
 //----------------------------------------------------------------------
 // ThreadTest
 // 	Invoke a test routine.
 //----------------------------------------------------------------------
 void
-ThreadTest(int n, int randomSeed, bool randomize ) {
+ThreadTest() {
     DEBUG('t', "Entering SimpleTest");
 	if (randomize) srand(randomSeed);
-	int map = -1;
     Thread *t;
+	n = testnum;
     numThreadsActive = n;
     printf("numThreadsActive =%d\n", numThreadsActive);
-#ifdef HW1_LOCKS
-    lock = new Lock("hw1Lock");
-#endif
     for (int i = 1;i<n;i++)
     {
         t = new Thread("forked thread");
-        t->Fork(SimpleThread,randomize ? getRandom(n, map) : i);
+        t->Fork(SimpleThread, i);
 #ifdef HW1_LOCKS
         DEBUG(i, "forked thread");
 #endif
     }
-    SimpleThread(randomize ? getRandom(n,map) : 0);
+    SimpleThread(0);
 
 }
 #else

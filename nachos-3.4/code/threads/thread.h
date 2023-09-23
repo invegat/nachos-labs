@@ -99,6 +99,7 @@ class Thread {
     void CheckOverflow();   			// Check if thread has 
 						// overflowed its stack
     void setStatus(ThreadStatus st) { status = st; }
+	ThreadStatus getStatus() { return status; }
     const char* getName() { return (name); }
     void Print() { printf("%s, ", name); }
 

@@ -54,7 +54,10 @@
 #include "system.h"
 
 #ifdef THREADS
-// extern int testnum;
+int testnum = 1;
+bool randomize = false;
+int randomSeed = 0;
+int n = testnum;
 #endif
 #include <string.h>
 
@@ -70,7 +73,9 @@ extern void Ping();
 extern void Print(char *file), PerformanceTest(void);
 extern void StartProcess(char *file), ConsoleTest(char *in, char *out);
 extern void MailTest(int networkID);
-
+#ifdef LOCKTEST
+extern void LockTest(void);
+#endif
 //----------------------------------------------------------------------
 // main
 // 	Bootstrap the operating system kernel.
@@ -93,9 +98,6 @@ main(int argc, char **argv)
 
     DEBUG('t', "Entering main");
     (void) Initialize(argc, argv);
-	int randomSeed = 0;
-	bool randomize = false;
-	int testnum = 1;
 
 #ifdef THREADS
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
@@ -126,7 +128,11 @@ main(int argc, char **argv)
 	Ping();
 #else
     #if defined(CHANGED) && defined(THREADS)
-        ThreadTest(testnum, randomSeed, randomize);
+		#ifdef LOCKTEST
+			LockTest();
+		#else
+        	ThreadTest();
+		#endif
     #else
         ThreadTest();
     #endif

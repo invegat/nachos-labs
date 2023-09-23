@@ -21,9 +21,19 @@
 // All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
+#if defined(HW1_SEMAPHORES) || defined(HW1_LOCKS)
+#include <stdlib.h> // for -rs switch rand
+#endif
+#include <pthread.h>
+
 #include "copyright.h"
 #include "synch.h"
 #include "system.h"
+
+int sortKey = 0;
+extern bool randomize;
+extern int n;
+const int multiple = 5;
 
 //----------------------------------------------------------------------
 // Semaphore::Semaphore
@@ -67,13 +77,13 @@ Semaphore::P()
     IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
 
     while (value == 0) { 			// semaphore not available
-	queue->Append((void *)currentThread);	// so go to sleep
+	queue->SortedInsert((void *)currentThread,randomize ? rand() % (multiple * n + 1) : sortKey++);	// so go to sleep
 	currentThread->Sleep();
     }
     value--; 					// semaphore available,
 						// consume its value
 
-   // (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
+   (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
 }
 
 //----------------------------------------------------------------------
@@ -90,7 +100,7 @@ Semaphore::V()
     Thread *thread;
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
-    thread = (Thread *)queue->Remove();
+    thread = (Thread *)queue->SortedRemove();
     if (thread != NULL)	   // make thread ready, consuming the V immediately
 	scheduler->ReadyToRun(thread);
     value++;
@@ -105,7 +115,7 @@ Lock::Lock(const char* debugName) {
     name = debugName;
     free = true;
     queue = new List;
-    lockThread = currentThread;
+    status = RUNNING;
 }
 Lock::~Lock() {
     delete queue;
@@ -126,7 +136,7 @@ void Lock::Acquire() {
         // Else, lock is not free -- add self to queue
         // (keep checking for free lock while)
         while (!free) {
-	        queue->Append((void *)currentThread);
+	        queue->SortedInsert((void *)currentThread,randomize ? rand() % (multiple * n + 1) : sortKey++);
             // so go to sleep
             currentThread->Sleep();
         }
@@ -147,7 +157,7 @@ void Lock::Release() {
     if (isHeldByCurrentThread()) {
         // If yes, release the lock and wakeup 1 of the waiting threads in queue
         free = true;
-        Thread *thread = (Thread *)queue->Remove();
+        Thread *thread = (Thread *)queue->SortedRemove();
         if (thread != NULL)	   // make thread ready, consuming the V immediately
             scheduler->ReadyToRun(thread);
 
@@ -164,15 +174,7 @@ void Lock::Release() {
 }
 
 bool Lock::isHeldByCurrentThread() {
-    return (lockThread == currentThread);
-//    Thread * thread = (Thread *)queue->Remove();
-//    if (thread != NULL) {
-//        queue->Prepend(thread);
-//        return (thread == currentThread);
-//    }
-//    return (true);
-   //return (true);
-
+	return (this->status = currentThread->getStatus());
 }
 #endif
 Condition::Condition(const char* debugName) {
@@ -189,10 +191,13 @@ void Condition::Wait(Lock* conditionLock) {
     ASSERT(conditionLock->isHeldByCurrentThread());
 
     // Release the lock
+	conditionLock->Release();
 
     // put self in the queue of waiting threads
+	queue->SortedInsert((void *)currentThread,randomize ? rand() % (multiple * n + 1) : sortKey++);
 
     // Re-acquire the lock
+	conditionLock->Acquire();
 
 }
 void Condition::Signal(Lock* conditionLock) {
@@ -202,7 +207,14 @@ void Condition::Signal(Lock* conditionLock) {
 
     // Dequeue one of the threads in the queue
 
+    Thread *thread = (Thread *)queue->SortedRemove();
+
     // If thread exists, wake it up.
+
+	if (thread != NULL) 
+		scheduler->ReadyToRun(thread);
+	
+
 
 }
 void Condition::Broadcast(Lock* conditionLock) {
@@ -211,7 +223,15 @@ void Condition::Broadcast(Lock* conditionLock) {
     ASSERT(conditionLock->isHeldByCurrentThread());
 
     // Dequeue all threads in the queue one-by-one
-
+	Thread *thread = (Thread *)queue->SortedRemove();
     // Wakeup each thread
+	while (thread!= NULL) {
+		scheduler->ReadyToRun(thread);
+		thread = (Thread *)queue->SortedRemove();		
+	}
 
  }
+
+// bool Condition::isHeldByCurrentThread() {
+//	return lock->isHeldByCurrentThread();
+// }

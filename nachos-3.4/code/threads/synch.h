@@ -66,7 +66,6 @@ class Semaphore {
 
 class Lock {
   public:
-    Thread * lockThread;
     Lock(const char* debugName);  		// initialize lock to be FREE
     ~Lock();				// deallocate lock
     const char* getName() { return name; }	// debugging assist
@@ -85,6 +84,7 @@ class Lock {
 
     List *queue;       // threads waiting on lock to become free
     bool free; // keeps track of the state of the lock
+	ThreadStatus status;
 };
 
 // The following class defines a "condition variable".  A condition
