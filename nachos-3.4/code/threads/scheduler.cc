@@ -18,6 +18,12 @@
 // All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
+#if defined(HW1_SEMAPHORES) || defined(HW1_LOCKS) || defined(USER_PROGRAM)
+#include <stdlib.h> // for -rs switch rand
+#endif
+
+extern int sortKey;
+
 #include "copyright.h"
 #include "scheduler.h"
 #include "system.h"
@@ -26,6 +32,9 @@
 // Scheduler::Scheduler
 // 	Initialize the list of ready but not running threads to empty.
 //----------------------------------------------------------------------
+extern bool randomize;
+extern int n;
+const int multiple = 5;
 
 Scheduler::Scheduler()
 {
@@ -56,7 +65,8 @@ Scheduler::ReadyToRun (Thread *thread)
     DEBUG('t', "Putting thread %s on ready list.\n", thread->getName());
 
     thread->setStatus(READY);
-    readyList->Append((void *)thread);
+    // readyList->Append((void *)thread);
+    readyList->SortedInsert((void *)thread,randomize ? rand() % (multiple * n + 1) : sortKey++);
 }
 
 //----------------------------------------------------------------------
@@ -70,7 +80,8 @@ Scheduler::ReadyToRun (Thread *thread)
 Thread *
 Scheduler::FindNextToRun ()
 {
-    return (Thread *)readyList->Remove();
+    return (Thread *)readyList->SortedRemove();
+
 }
 
 //----------------------------------------------------------------------

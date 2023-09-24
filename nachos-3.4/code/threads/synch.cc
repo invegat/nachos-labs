@@ -21,7 +21,7 @@
 // All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
-#if defined(HW1_SEMAPHORES) || defined(HW1_LOCKS)
+#if defined(HW1_SEMAPHORES) || defined(HW1_LOCKS) || defined(USER_PROGRAM)
 #include <stdlib.h> // for -rs switch rand
 #endif
 #include <pthread.h>
@@ -187,6 +187,8 @@ Condition::~Condition() {
 
 void Condition::Wait(Lock* conditionLock) {
 
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
+
     // check if calling thread holds the lock
     ASSERT(conditionLock->isHeldByCurrentThread());
 
@@ -195,9 +197,12 @@ void Condition::Wait(Lock* conditionLock) {
 
     // put self in the queue of waiting threads
 	queue->SortedInsert((void *)currentThread,randomize ? rand() % (multiple * n + 1) : sortKey++);
+	currentThread->Sleep();
 
     // Re-acquire the lock
 	conditionLock->Acquire();
+
+    (void) interrupt->SetLevel(oldLevel);
 
 }
 void Condition::Signal(Lock* conditionLock) {

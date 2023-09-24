@@ -45,6 +45,11 @@
 // Copyright (c) 1992-1993 The Regents of the University of California.
 // All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
+//          HW1_SEMAPHORES
+// -D       HW1_SEMAPHORES 
+#if defined(HW1_SEMAPHORES) || defined(HW1_LOCKS) || defined(USER_PROGRAM)
+#include <stdlib.h> // for -rs switch srand
+#endif
 
 #define MAIN
 #include "copyright.h"
@@ -54,17 +59,17 @@
 #include "system.h"
 
 #ifdef THREADS
-int testnum = 1;
+int testnum = 4;
 bool randomize = false;
-int randomSeed = 0;
-int n = testnum;
+float randomSeed = 0;
+int n = 0;
 #endif
 #include <string.h>
 
 // External functions used by this file
 
-#if defined(CHANGED) && defined(THREADS)
-extern void ThreadTest(int n, int randomSeed = 0, bool randomize = false), Copy(char *unixFile, char *nachosFile);
+#if defined(THREADS)
+extern void ThreadTest(), Copy(char *unixFile, char *nachosFile);
 #else
 extern void ThreadTest(void), Copy(char *unixFile, char *nachosFile);
 #endif
@@ -73,9 +78,9 @@ extern void Ping();
 extern void Print(char *file), PerformanceTest(void);
 extern void StartProcess(char *file), ConsoleTest(char *in, char *out);
 extern void MailTest(int networkID);
-#ifdef LOCKTEST
 extern void LockTest(void);
-#endif
+extern void SemaphorePing(void);
+extern void Ping(void);	
 //----------------------------------------------------------------------
 // main
 // 	Bootstrap the operating system kernel.
@@ -103,43 +108,37 @@ main(int argc, char **argv)
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
       argCount = 1;
       switch (argv[0][1]) {
-#ifdef CHANGED
 		case 'r':
 			if (strcmp(argv[0],"-rs") == 0) {
-				randomSeed = atoi(argv[1]);
+				randomSeed = atof(argv[1] + 1);
 				randomize = true;
 				argCount++;
 			}
 			break;
-#endif
       case 'q':
-#ifdef CHANGED
         testnum = atoi(argv[1]);
         argCount++;
         break;
-#endif
       default:
           testnum = 1;
         break;
       }
     }
 #endif
-#ifndef CHANGED
+	n = testnum;
+	if (randomize) srand(randomSeed);
+
+#ifndef THREADS
 	Ping();
 #else
-    #if defined(CHANGED) && defined(THREADS)
-		#ifdef LOCKTEST
-			LockTest();
-		#else
-        	ThreadTest();
-		#endif
-    #else
-        ThreadTest();
-    #endif
+//	SemaphorePing();
+//	LockTest();
+    ThreadTest();
+//	Ping();
 #endif
 
 
-#if defined(CHANGED) && defined(HW1_ELEVATOR)
+#if defined(HW1_ELEVATOR)
 	ElevatorTest(5, 5);
 #endif
 

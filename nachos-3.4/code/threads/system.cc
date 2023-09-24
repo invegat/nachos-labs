@@ -5,8 +5,12 @@
 // All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
+
+
 #include "copyright.h"
 #include "system.h"
+
+
 
 // This defines *all* of the global data structures used by Nachos.
 // These are all initialized and de-allocated by this file.
@@ -42,7 +46,7 @@ PostOffice *postOffice;
 
 // External definition, to allow us to take a pointer to this function
 extern void Cleanup();
-
+;
 
 //----------------------------------------------------------------------
 // TimerInterruptHandler
@@ -145,9 +149,8 @@ Initialize(int argc, char **argv)
     // We didn't explicitly allocate the current thread we are running in.
     // But if it ever tries to give up the CPU, we better have a Thread
     // object to save its state.
-    currentThread = new Thread("Lock");
+    currentThread = new Thread("main");
     currentThread->setStatus(RUNNING);
-
     interrupt->Enable();
     CallOnUserAbort(Cleanup);			// if user hits ctl-C
 
@@ -169,6 +172,7 @@ Initialize(int argc, char **argv)
 #ifdef NETWORK
     postOffice = new PostOffice(netname, rely, 10);
 #endif
+
 }
 
 //----------------------------------------------------------------------

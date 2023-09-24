@@ -54,7 +54,7 @@ extern int n;
 //	"which" is simply a number identifying the thread, for debugging
 //	purposes.
 //----------------------------------------------------------------------
-#if defined(HW1_SEMAPHORES) || defined(HW1_LOCKS)
+#if defined(HW1_SEMAPHORES) || defined(HW1_LOCKS) || defined(USER_PROGRAM)
 
 int SharedVariable;
 int numThreadsActive; // used to implement barrier upon completion
@@ -108,7 +108,6 @@ int getRandom(int n,int &map) {
 void
 ThreadTest() {
     DEBUG('t', "Entering SimpleTest");
-	if (randomize) srand(randomSeed);
     Thread *t;
 	n = testnum;
     numThreadsActive = n;
