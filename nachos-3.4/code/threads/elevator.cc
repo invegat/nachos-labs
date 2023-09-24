@@ -2,7 +2,10 @@
 #include "system.h"
 #include "synch.h"
 #include "elevator.h"
+/*
+1. does the elevator go from floor 1 to the top unconditionally then back to floor 1 unconditionally 
 
+*/
 
 int nextPersonID = 1;
 Lock *personIDLock = new Lock("PersonIDLock");
@@ -10,12 +13,21 @@ Lock *personIDLock = new Lock("PersonIDLock");
 
 ELEVATOR *e;
 
-
+Condition hailCondition = new Condition("hail");
+Lock hailLock = new Lock("hailLock", false);
 void ELEVATOR::start() {
-
+	
     while(1) {
 
         // A. Wait until hailed
+		hailCondition->wait(hailLock);
+		
+		elevatorLock->Acquire();
+		leaving[currentFloor]->broadcast(elevatorLock
+		while(occupancy <= maxOccupancy) {
+			
+		}
+
 
         // B. While there are active persons, loop doing the following
         //      0. Acquire elevatorLock
@@ -52,7 +64,10 @@ ELEVATOR::ELEVATOR(int numFloors) {
     personsWaiting = new int[numFloors];
     elevatorLock = new Lock("ElevatorLock");
 
-    // Initialize leaving
+    // Initialize 
+    for (int j = 0; j < numFloors; j++) {
+        leaving[j] = new Condition("Leaving " + j);
+    }
 }
 
 
@@ -62,6 +77,13 @@ void Elevator(int numFloors) {
     t->Fork(ElevatorThread, numFloors);
 }
 
+int getPersonID() {
+	int personID = nextPersonID;
+	personIDLock->Acquire();
+	nextPersonID++;
+	personIDLock->Release();
+	return personID;
+}
 
 void ELEVATOR::hailElevator(Person *p) {
     // 1. Increment waiting persons atFloor
