@@ -29,16 +29,6 @@ Semaphore * semaphore = new Semaphore("semaphoreTest", 1);
 Lock * lock = new Lock("lockTest");
 #endif
 #endif
-///static double pow (double x, double y);
-// extern double round (double x);
-// extern int rand (void);
-// extern void srand (unsigned int seed);
-int myPow (int x, int p) {
-  int i = 1;
-  for (int j = 1; j <= p; j++)  i *= x;
-  return i;
-}
-// #include <math.h>
 
 
 // testnum is set in main.cc
@@ -54,8 +44,7 @@ extern int n;
 //	"which" is simply a number identifying the thread, for debugging
 //	purposes.
 //----------------------------------------------------------------------
-#if defined(HW1_SEMAPHORES) || defined(HW1_LOCKS) || defined(USER_PROGRAM)
-
+#ifdef THREADS
 int SharedVariable;
 int numThreadsActive; // used to implement barrier upon completion
 extern int n;

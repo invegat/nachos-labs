@@ -4,8 +4,28 @@
 #include "elevator.h"
 /*
 1. does the elevator go from floor 1 to the top unconditionally then back to floor 1 unconditionally 
-
 */
+void addToPP(Person ** pp, Person * p) {
+	while(1) {
+		if (*pp == 0) {
+			*pp = p;
+			break;
+		}
+		if (*pp == NULL) {
+			*pp=p;
+			pp[1] = NULL;
+			break;
+		}
+		pp++;
+	}
+}
+void removeFromPP(Person ** pp, Person * p) {
+	for(;*pp != p;pp++);
+	if (pp[1] == NULL) 
+		*pp = NULL;
+	else
+		*pp = (Person *)0;
+}
 
 int nextPersonID = 1;
 Lock *personIDLock = new Lock("PersonIDLock");
@@ -13,33 +33,42 @@ Lock *personIDLock = new Lock("PersonIDLock");
 
 ELEVATOR *e;
 
-Condition hailCondition = new Condition("hail");
-Lock hailLock = new Lock("hailLock", false);
 void ELEVATOR::start() {
 	
     while(1) {
 
         // A. Wait until hailed
-		hailCondition->wait(hailLock);
 		
+        //      0. Acquire elevatorLock
 		elevatorLock->Acquire();
-		leaving[currentFloor]->broadcast(elevatorLock
-		while(occupancy <= maxOccupancy) {
-			
-		}
 
+        //      1. Signal persons inside elevator to get off (leaving->broadcast(elevatorLock))
+		leaving[currentFloor]->Broadcast(elevatorLock);
+
+		Condition * condition = (Condition *)entering[currentFloor];
+        //      2. Signal persons atFloor to get in, one at a time, checking occupancyLimit each time
+		while(occupancy < maxOccupancy) {
+			Thread  * thread = condition->Signal(elevatorLock);
+			if (thread == NULL) break;
+			
+			occupancy++;
+		}
+        //      2.5 Release elevatorLock
+		elevatorLock->Release();
 
         // B. While there are active persons, loop doing the following
-        //      0. Acquire elevatorLock
-        //      1. Signal persons inside elevator to get off (leaving->broadcast(elevatorLock))
-        //      2. Signal persons atFloor to get in, one at a time, checking occupancyLimit each time
-        //      2.5 Release elevatorLock
         //      3. Spin for some time
                 for(int j =0 ; j< 1000000; j++) {
                     currentThread->Yield();
                 }
-        //      4. Go to next floor
-        //  printf("Elevator arrives on floor %d", )
+        //      4. Go to next 
+		if (up && (currentFloor < numFloors))
+			currentFloor++;
+		else {
+			currentFloor--;
+			up = (currentFloor == 1);
+		}
+        printf("Elevator arrives on floor %d\n", currentFloor );
     }
 }
 
@@ -54,27 +83,34 @@ void ElevatorThread(int numFloors) {
 
 }
 
-ELEVATOR::ELEVATOR(int numFloors) {
+ELEVATOR::ELEVATOR(int lNumFloors) {
+	numFloors = lNumFloors;
     currentFloor = 1;
-    entering = new Condition*[numFloors];
+    entering = new Condition*[numFloors + 1];
+    leaving = new Condition*[numFloors + 1];
     // Initialize entering
-    for (int i = 0; i < numFloors; i++) {
+    for (int i = 1; i < numFloors + 1; i++) {
         entering[i] = new Condition("Entering " + i);
     }
     personsWaiting = new int[numFloors];
+
     elevatorLock = new Lock("ElevatorLock");
 
     // Initialize 
-    for (int j = 0; j < numFloors; j++) {
+    for (int j = 1; j < numFloors + 1; j++) {
         leaving[j] = new Condition("Leaving " + j);
     }
+	personsOn = new Person*[100]; // limited to 100 student/teachers
+	personsOn[0] = (Person *)NULL;
+	up = true;
+	maxOccupancy = 5;
 }
 
 
-void Elevator(int numFloors) {
+void Elevator(int lNumFloors) {
     // Create Elevator Thread
     Thread *t = new Thread("Elevator");
-    t->Fork(ElevatorThread, numFloors);
+    t->Fork(ElevatorThread, lNumFloors);
 }
 
 int getPersonID() {
@@ -87,18 +123,31 @@ int getPersonID() {
 
 void ELEVATOR::hailElevator(Person *p) {
     // 1. Increment waiting persons atFloor
+	personsWaiting[currentFloor]++;
     // 2. Hail Elevator
+	elevatorLock->Release();
     // 2.5 Acquire elevatorLock;
+	elevatorLock->Acquire();
     // 3. Wait for elevator to arrive atFloor [entering[p->atFloor]->wait(elevatorLock)]
+	entering[p->atFloor]->Wait(elevatorLock);
     // 5. Get into elevator
+	addToPP((Person **)personsOn,p);
+
     printf("Person %d got into the elevator.\n", p->id);
     // 6. Decrement persons waiting atFloor [personsWaiting[atFloor]++]
+	if (personsWaiting[p->atFloor] > 0)
+		personsWaiting[p->atFloor]--;
     // 7. Increment persons inside elevator [occupancy++]
+	occupancy++;
     // 8. Wait for elevator to reach toFloor [leaving[p->toFloor]->wait(elevatorLock)]
+	leaving[p->toFloor]->Wait(elevatorLock);
     // 9. Get out of the elevator
+	removeFromPP((Person **)personsOn, p);
     printf("Person %d got out of the elevator.\n", p->id);
     // 10. Decrement persons inside elevator
+	occupancy--;
     // 11. Release elevatorLock;
+	elevatorLock->Release();
 }
 
 void PersonThread(int person) {

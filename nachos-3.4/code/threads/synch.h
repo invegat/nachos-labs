@@ -130,7 +130,7 @@ class Condition {
 					// condition variables; releasing the
 					// lock and going to sleep are
 					// *atomic* in Wait()
-    void Signal(Lock *conditionLock);   // conditionLock must be held by
+    Thread * Signal(Lock *conditionLock);   // conditionLock must be held by
     void Broadcast(Lock *conditionLock);// the currentThread for all of
 					// these operations
 
@@ -138,6 +138,7 @@ class Condition {
     const char* name;
     // plus some other stuff you'll need to define
     List *queue;       // threads waiting on the condition variable
+	Lock * oneWait;
 
 };
 #endif // SYNCH_H

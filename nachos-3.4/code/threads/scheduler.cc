@@ -18,9 +18,9 @@
 // All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
-#if defined(HW1_SEMAPHORES) || defined(HW1_LOCKS) || defined(USER_PROGRAM)
+// #if defined(HW1_SEMAPHORES) || defined(HW1_LOCKS) || defined(USER_PROGRAM)
 #include <stdlib.h> // for -rs switch rand
-#endif
+// #endif
 
 extern int sortKey;
 

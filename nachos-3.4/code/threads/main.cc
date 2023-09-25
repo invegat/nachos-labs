@@ -47,9 +47,9 @@
 // of liability and disclaimer of warranty provisions.
 //          HW1_SEMAPHORES
 // -D       HW1_SEMAPHORES 
-#if defined(HW1_SEMAPHORES) || defined(HW1_LOCKS) || defined(USER_PROGRAM)
+// #if defined(HW1_SEMAPHORES) || defined(HW1_LOCKS) || defined(USER_PROGRAM) 
 #include <stdlib.h> // for -rs switch srand
-#endif
+// #endif
 
 #define MAIN
 #include "copyright.h"
@@ -131,10 +131,12 @@ main(int argc, char **argv)
 #ifndef THREADS
 	Ping();
 #else
-//	SemaphorePing();
-//	LockTest();
-    ThreadTest();
-//	Ping();
+	#ifndef HW1_ELEVATOR
+//		SemaphorePing();
+//		LockTest();
+    	ThreadTest();
+//		Ping();
+	#endif
 #endif
 
 

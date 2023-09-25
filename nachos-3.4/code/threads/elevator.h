@@ -27,11 +27,12 @@ private:
     Condition **entering;
     Condition **leaving;
     int *personsWaiting;
-	int *personsOn;
+	Person **personsOn;
     int occupancy;
     int maxOccupancy;
     Lock *elevatorLock;
-
+	bool up;
+	int numFloors; 
 };
 
 #endif
