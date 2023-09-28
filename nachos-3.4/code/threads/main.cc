@@ -60,8 +60,6 @@
 
 #ifdef THREADS
 int testnum = 4;
-bool randomize = false;
-float randomSeed = 0;
 int n = 0;
 #endif
 #include <string.h>
@@ -108,13 +106,6 @@ main(int argc, char **argv)
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
       argCount = 1;
       switch (argv[0][1]) {
-		case 'r':
-			if (strcmp(argv[0],"-rs") == 0) {
-				randomSeed = atof(argv[1] + 1);
-				randomize = true;
-				argCount++;
-			}
-			break;
       case 'q':
         testnum = atoi(argv[1]);
         argCount++;
@@ -126,15 +117,14 @@ main(int argc, char **argv)
     }
 #endif
 	n = testnum;
-	if (randomize) srand(randomSeed);
 
 #ifndef THREADS
 	Ping();
 #else
 	#ifndef HW1_ELEVATOR
 //		SemaphorePing();
-//		LockTest();
-    	ThreadTest();
+		LockTest();
+//    	ThreadTest();
 //		Ping();
 	#endif
 #endif

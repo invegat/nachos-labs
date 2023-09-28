@@ -33,8 +33,6 @@ Lock * lock = new Lock("lockTest");
 
 // testnum is set in main.cc
 extern int testnum;
-extern bool randomize;
-extern int randomSeed;
 extern int n;
 //----------------------------------------------------------------------
 // SimpleThread

@@ -22,17 +22,19 @@ public:
     void hailElevator(Person *p);
     void start();
 
+    int *personsWaiting;
+    int occupancy;
+	int numFloors;
+	Person **personsOn;
+
 private:
     int currentFloor;
     Condition **entering;
     Condition **leaving;
-    int *personsWaiting;
-	Person **personsOn;
-    int occupancy;
     int maxOccupancy;
     Lock *elevatorLock;
 	bool up;
-	int numFloors; 
+	Timer * eTimer; 
 };
 
 #endif

@@ -27,7 +27,6 @@
 #include "system.h"
 
 int sortKey = 0;
-extern bool randomize;
 extern int n;
 const int multiple = 5;
 
@@ -235,6 +234,3 @@ void Condition::Broadcast(Lock* conditionLock) {
 
  }
 
-// bool Condition::isHeldByCurrentThread() {
-//	return lock->isHeldByCurrentThread();
-// }

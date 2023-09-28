@@ -22,8 +22,6 @@
 #include <stdlib.h> // for -rs switch rand
 // #endif
 
-extern int sortKey;
-
 #include "copyright.h"
 #include "scheduler.h"
 #include "system.h"
@@ -65,8 +63,8 @@ Scheduler::ReadyToRun (Thread *thread)
     DEBUG('t', "Putting thread %s on ready list.\n", thread->getName());
 
     thread->setStatus(READY);
-    // readyList->Append((void *)thread);
-    readyList->SortedInsert((void *)thread,randomize ? rand() % (multiple * n + 1) : sortKey++);
+    readyList->Append((void *)thread);
+    //readyList->SortedInsert((void *)thread,randomize ? rand() % (multiple * n + 1) : sortKey++);
 }
 
 //----------------------------------------------------------------------
@@ -80,7 +78,7 @@ Scheduler::ReadyToRun (Thread *thread)
 Thread *
 Scheduler::FindNextToRun ()
 {
-    return (Thread *)readyList->SortedRemove();
+    return (Thread *)readyList->Remove();
 
 }
 
