@@ -172,10 +172,10 @@ bool Lock::isHeldByCurrentThread() {
 	return (this->status = currentThread->getStatus());
 }
 #endif
+static Lock * oneWait = new Lock("One_Wait");
 Condition::Condition(const char* debugName) {
     name = debugName; // init
     queue =  new List;
-	oneWait = new Lock("One_Wait");
 }
 Condition::~Condition() {
     delete queue;

@@ -132,6 +132,7 @@ main(int argc, char **argv)
 
 #if defined(HW1_ELEVATOR)
 	ElevatorTest(5, 5);
+    while (1) currentThread->Yield();
 #endif
 
 

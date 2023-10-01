@@ -21,5 +21,8 @@ void ElevatorTest(int numFloors, int numPersons) {
             currentThread->Yield();
         }
     }
+    for(int j =0 ; j< 100000000; j++) {
+        currentThread->Yield();
+    }
 
 }

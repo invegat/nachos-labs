@@ -138,7 +138,7 @@ class Condition {
     const char* name;
     // plus some other stuff you'll need to define
     List *queue;       // threads waiting on the condition variable
-	Lock * oneWait;
+	// Lock * oneWait;
 
 };
 #endif // SYNCH_H

@@ -4,6 +4,8 @@
 
 #include "copyright.h"
 
+const int tp = 100;
+
 void Elevator(int numFloors);
 void ArrivingGoingFromTo(int atFloor, int toFloor);
 
@@ -25,16 +27,23 @@ public:
     int *personsWaiting;
     int occupancy;
 	int numFloors;
-	Person **personsOn;
+    Person *personsOn[tp];
 
 private:
     int currentFloor;
     Condition **entering;
     Condition **leaving;
+    Person ***listEntering;
+    Person ***listLeaving;
     int maxOccupancy;
     Lock *elevatorLock;
 	bool up;
-	Timer * eTimer; 
+	Timer * eTimer;
+    void addToPP(Person * pp[], Person * p);
+    void removeFromPP(Person * pp[], Person * p);
+    Lock * personLock;
+    int getFrom();
+    int getTo();
 };
 
 #endif
