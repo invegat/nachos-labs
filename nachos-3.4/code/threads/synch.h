@@ -84,7 +84,7 @@ class Lock {
 
     List *queue;       // threads waiting on lock to become free
     bool free; // keeps track of the state of the lock
-	ThreadStatus status;
+	Thread * activeThread;
 };
 
 // The following class defines a "condition variable".  A condition

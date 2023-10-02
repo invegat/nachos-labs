@@ -100,6 +100,7 @@ main(int argc, char **argv)
 					// for a particular command
 
     DEBUG('t', "Entering main");
+
     (void) Initialize(argc, argv);
 
 #ifdef THREADS
@@ -123,9 +124,9 @@ main(int argc, char **argv)
 #else
 	#ifndef HW1_ELEVATOR
 //		SemaphorePing();
-		LockTest();
+//		LockTest();
 //    	ThreadTest();
-//		Ping();
+		Ping();
 	#endif
 #endif
 

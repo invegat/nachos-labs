@@ -28,6 +28,7 @@ public:
     int occupancy;
 	int numFloors;
     Person *personsOn[tp];
+    Lock *elevatorLock;
 
 private:
     int currentFloor;
@@ -36,14 +37,14 @@ private:
     Person ***listEntering;
     Person ***listLeaving;
     int maxOccupancy;
-    Lock *elevatorLock;
 	bool up;
 	Timer * eTimer;
     void addToPP(Person * pp[], Person * p);
     void removeFromPP(Person * pp[], Person * p);
     Lock * personLock;
-    int getFrom();
-    int getTo();
+    Lock *floorLock;
+    int getFloor(Person ** pp[], bool at);
+    bool onElevator(Person * p);
 };
 
 #endif

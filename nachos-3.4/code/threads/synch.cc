@@ -110,7 +110,7 @@ Lock::Lock(const char* debugName, bool lFree) {
     name = debugName;
     free = lFree;
     queue = new List;
-    status = RUNNING;
+    activeThread = NULL;
 }
 Lock::~Lock() {
     delete queue;
@@ -126,8 +126,10 @@ void Lock::Acquire() {
 
         // If yes, make the lock not free anymore
         free = false;
+        activeThread = currentThread;
     }
     else {
+
         // Else, lock is not free -- add self to queue
         // (keep checking for free lock while)
         while (!free) {
@@ -136,6 +138,7 @@ void Lock::Acquire() {
             currentThread->Sleep();
         }
 		free = false;
+        activeThread = currentThread;
     }
     // Enable interrupts
     (void) interrupt->SetLevel(oldLevel);
@@ -155,6 +158,7 @@ void Lock::Release() {
         Thread *thread = (Thread *)queue->Remove();
         if (thread != NULL)	   // make thread ready, consuming the V immediately
             scheduler->ReadyToRun(thread);
+        activeThread = NULL;
 
     }
     else {
@@ -169,10 +173,10 @@ void Lock::Release() {
 }
 
 bool Lock::isHeldByCurrentThread() {
-	return (this->status = currentThread->getStatus());
+	return (this->activeThread == currentThread);
 }
 #endif
-static Lock * oneWait = new Lock("One_Wait");
+//static Lock * oneWait = new Lock("One_Wait");
 Condition::Condition(const char* debugName) {
     name = debugName; // init
     queue =  new List;
@@ -185,7 +189,7 @@ void Condition::Wait(Lock* conditionLock) {
 
     IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
 
-	oneWait->Acquire();
+//	oneWait->Acquire();
     // check if calling thread holds the lock
     ASSERT(conditionLock->isHeldByCurrentThread());
 
@@ -198,7 +202,7 @@ void Condition::Wait(Lock* conditionLock) {
 
     // Re-acquire the lock
 	conditionLock->Acquire();
-	oneWait->Release();
+//	oneWait->Release();
     (void) interrupt->SetLevel(oldLevel);
 
 }
