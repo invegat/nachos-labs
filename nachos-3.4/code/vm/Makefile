@@ -488,7 +488,10 @@ elevator.o: ../threads/elevator.cc /usr/include/stdc-predef.h \
  ../filesys/openfile.h ../threads/scheduler.h ../threads/list.h \
  ../machine/interrupt.h ../machine/stats.h ../machine/timer.h \
  ../userprog/memorymanager.h ../threads/synch.h ../userprog/pcbmanager.h \
- ../threads/elevator.h
+ ../threads/elevator.h /usr/include/unistd.h \
+ /usr/include/bits/posix_opt.h /usr/include/bits/environments.h \
+ /usr/include/bits/confname.h /usr/include/bits/getopt_posix.h \
+ /usr/include/bits/getopt_core.h
 ElevatorTest.o: ../threads/ElevatorTest.cc /usr/include/stdc-predef.h \
  ../threads/copyright.h ../threads/system.h ../threads/utility.h \
  ../threads/bool.h ../machine/sysdep.h ../threads/copyright.h \
@@ -512,7 +515,10 @@ ElevatorTest.o: ../threads/ElevatorTest.cc /usr/include/stdc-predef.h \
  ../filesys/openfile.h ../threads/scheduler.h ../threads/list.h \
  ../machine/interrupt.h ../machine/stats.h ../machine/timer.h \
  ../userprog/memorymanager.h ../threads/synch.h ../userprog/pcbmanager.h \
- ../threads/elevator.h
+ ../threads/elevator.h /usr/include/unistd.h \
+ /usr/include/bits/posix_opt.h /usr/include/bits/environments.h \
+ /usr/include/bits/confname.h /usr/include/bits/getopt_posix.h \
+ /usr/include/bits/getopt_core.h
 addrspace.o: ../userprog/addrspace.cc /usr/include/stdc-predef.h \
  ../threads/copyright.h ../threads/system.h ../threads/copyright.h \
  ../threads/utility.h ../threads/bool.h ../machine/sysdep.h \

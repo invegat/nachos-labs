@@ -144,7 +144,7 @@ void Lock::Acquire() {
     (void) interrupt->SetLevel(oldLevel);
 
 }
-void Lock::Release() {
+void Lock::Release(bool nullActiveThread) {
 
     // disable interrupts
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
@@ -158,7 +158,8 @@ void Lock::Release() {
         Thread *thread = (Thread *)queue->Remove();
         if (thread != NULL)	   // make thread ready, consuming the V immediately
             scheduler->ReadyToRun(thread);
-        activeThread = NULL;
+        if (nullActiveThread)
+            activeThread = NULL;
 
     }
     else {
@@ -223,18 +224,23 @@ Thread * Condition::Signal(Lock* conditionLock) {
 
 
 }
-void Condition::Broadcast(Lock* conditionLock) {
+int Condition::Broadcast(Lock* conditionLock) {
 
     // check if calling thread holds the lock
     ASSERT(conditionLock->isHeldByCurrentThread());
-
+    int i = 0;
     // Dequeue all threads in the queue one-by-one
 	Thread *thread = (Thread *)queue->Remove();
     // Wakeup each thread
 	while (thread!= NULL) {
+        i++;
 		scheduler->ReadyToRun(thread);
 		thread = (Thread *)queue->Remove();		
 	}
-
+    return i;
  }
+ bool Condition::IsEmpty() {
+    return queue->IsEmpty();
+}		// is the list empty?
+
 

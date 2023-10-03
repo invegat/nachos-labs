@@ -1,7 +1,7 @@
 
 #ifndef ELEVATOR_H
 #define ELEVATOR_H
-
+#include<unistd.h>
 #include "copyright.h"
 
 const int tp = 100;
@@ -15,6 +15,7 @@ typedef struct Person {
     int toFloor;
 } Person;
 
+const int maxOccupancy = 5;
 
 class ELEVATOR {
 
@@ -42,7 +43,7 @@ private:
     void addToPP(Person * pp[], Person * p);
     void removeFromPP(Person * pp[], Person * p);
     Lock * personLock;
-    Lock *floorLock;
+//    Lock *floorLock;
     int getFloor(Person ** pp[], bool at);
     bool onElevator(Person * p);
 };

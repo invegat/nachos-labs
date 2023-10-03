@@ -71,7 +71,7 @@ class Lock {
     const char* getName() { return name; }	// debugging assist
 
     void Acquire(); // these are the only operations on a lock
-    void Release(); // they are both *atomic*
+    void Release(bool nullActiveThread = true); // they are both *atomic*
 
     bool isHeldByCurrentThread();	// true if the current thread
 					// holds this lock.  Useful for
@@ -131,8 +131,9 @@ class Condition {
 					// lock and going to sleep are
 					// *atomic* in Wait()
     Thread * Signal(Lock *conditionLock);   // conditionLock must be held by
-    void Broadcast(Lock *conditionLock);// the currentThread for all of
+    int Broadcast(Lock *conditionLock);// the currentThread for all of
 					// these operations
+    bool IsEmpty();		// is the list empty?
 
   private:
     const char* name;

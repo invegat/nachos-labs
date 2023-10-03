@@ -123,10 +123,10 @@ main(int argc, char **argv)
 	Ping();
 #else
 	#ifndef HW1_ELEVATOR
-//		SemaphorePing();
+		SemaphorePing();
 //		LockTest();
 //    	ThreadTest();
-		Ping();
+//		Ping();
 	#endif
 #endif
 

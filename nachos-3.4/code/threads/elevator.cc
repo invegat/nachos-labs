@@ -18,14 +18,14 @@ static int personCount(Person *p[]) {
 		}		
 	return totalOn;
 }
-static int lTotalWaiting = -1, lTotalOn = -1; 
+static int lTotalWaiting = -1, lTotalOn = -1;
+static bool firstTestHalt = true;
 static void testHalt(int pE) {
     IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
 	if (inAction) {
 		haltEnabled = true;
-		return;
-	}
-	if (haltEnabled) {
+    }
+	if (haltEnabled && (!firstTestHalt)) {
 		ELEVATOR * e = *(ELEVATOR **)pE;
 		int totalWaiting = 0;
 		for (int floor = 1;floor < e->numFloors;floor++) 
@@ -38,8 +38,10 @@ static void testHalt(int pE) {
 		}	
 		// interrupt->Halt();		
 //		if (e->occupancy == 0 && totalWaiting == 0) interrupt->Halt();
-		if (totalOn == 0 && totalWaiting == 0)
-            interrupt->Halt();
+		if (totalOn == 0 && totalWaiting == 0) {
+            printf("testHalt Halt\n");
+//            interrupt->Halt();
+        }
 	}
    (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
 }
@@ -126,33 +128,17 @@ void ELEVATOR::start() {
     int to = -1;
 	
     while(1) {
-
+        for(int j =0 ; j< 1000000; j++) {
+            currentThread->Yield();
+        }
         // A. Wait until hailed
 		
         //      0. Acquire elevatorLock
-        bool elevatorCaptured = false;
-        if (from == currentFloor || to == currentFloor) {
-            if (to == currentFloor) {
-                printf("Broadcasting\n");
-                //      1. Signal persons inside elevator to get off (leaving->broadcast(elevatorLock))
-                leaving[currentFloor]->Broadcast(elevatorLock);
-            }
-            if (from == currentFloor) {
-                Condition * condition = (Condition *)entering[currentFloor];
-            //      2. Signal persons atFloor to get in, one at a time, checking occupancyLimit each time
-                while(occupancy < maxOccupancy) {
-                    Thread  * thread = condition->Signal(elevatorLock);
-                    if (thread == NULL) break;
-                     occupancy++;
-                }
-            }
-
-            elevatorLock->Acquire();
-            elevatorCaptured = true;
-        }
+//        bool elevatorCaptured = false;
+        elevatorLock->Acquire();
+//        elevatorCaptured = true;
 
 
-        testHalt((int)&e);
 
         int totalWaiting = 0;
         for (int floor = 1;floor < numFloors;floor++)
@@ -162,21 +148,17 @@ void ELEVATOR::start() {
         to = getFloor(listLeaving, false);
 
 
+
         // B. While there are active persons, loop doing the following
         //      3. Spin for some time
 		if (occupancy > 0 || from > 0 || to > 0 || totalWaiting == 0 || totalWaiting > 0)
-                for(int j =0 ; j< 1000000; j++) {
-                    currentThread->Yield();
-                }
+            sleep(1);
         //      4. Go to next 
 		bool suppressPrint = false;
 //        bool floorCaptured = false;
-        if (from == currentFloor || to == currentFloor) {
-            floorLock->Release();
-            floorLock->Acquire();
-//            floorCaptured = true;
-        }
+
         if (from == -1 && to == -1) {
+//            if (!firstTestHalt) interrupt->Halt();
             if (currentFloor == numFloors)
                 up = false;
              if (currentFloor == 1)
@@ -185,53 +167,83 @@ void ELEVATOR::start() {
                 currentFloor++;
             else
                 currentFloor--;
-            for(int j =0 ; j< 1000000; j++) {
-                currentThread->Yield();
-            }
+            sleep(1);
         }
+        if (from > 0 || to > 0)
+            firstTestHalt = false;
 
-
-		if ((from > 0) && (to == -1 || (abs(to - currentFloor) > abs(from - currentFloor) ) ) )  {
+        Condition * condition = (Condition *)entering[from];
+		if ((from > 0) && (to == -1 || (abs(to - currentFloor) > abs(from - currentFloor))) && (occupancy < maxOccupancy)  && (!(condition->IsEmpty())) )
+        {
+            /*
 			if (currentFloor > from)
 				currentFloor--;
 			else if (currentFloor < from)
 				currentFloor++;
 			else {
 				suppressPrint = true;
-				from = 0;
+//				from = 0;
                 for(int j =0 ; j< 1000000; j++) {
                     currentThread->Yield();
                 }				
 			}
-		}
+             */
+            while (currentFloor != from){
+                if (from < currentFloor) currentFloor--;
+                if (from > currentFloor) currentFloor++;
+                printf("Elevator arrives on floor %d\n", currentFloor );
+                sleep(1);
+            }
+            //      2. Signal persons atFloor to get in, one at a time, checking occupancyLimit each time
+            int o = occupancy;
+            while(o < maxOccupancy) {
+                Thread  * thread = condition->Signal(elevatorLock);
+                if (thread == NULL) break;
+                o++;
+            }
+            suppressPrint = true;
+            from = -1;
+        }
 		else if (to > 0) {
+            /*
 			if (currentFloor > to)
 				currentFloor--;
 			else if (currentFloor < to)
 				currentFloor++;
 			else {
 				suppressPrint = true;
-				to = 0;
+//				to = 0;
                 for(int j =0 ; j< 1000000; j++) {
                     currentThread->Yield();
                 }
 			}
+             */
+            while (currentFloor != to){
+                if (to < currentFloor) currentFloor--;
+                if (to > currentFloor) currentFloor++;
+                printf("Elevator arrives on floor %d\n", currentFloor );
+                sleep(1);
+            }
+            printf("Broadcasting\n");
+            //      1. Signal persons inside elevator to get off (leaving->broadcast(elevatorLock))
+            int i = leaving[currentFloor]->Broadcast(elevatorLock);
+            printf("%d dequed by Broadcast\n", i);
+            to = -1;
+            suppressPrint = true;
 		}
 //        if (floorCaptured)
-        floorLock->Release();
+//        floorLock->Release();
 		if (!suppressPrint) {
 			if (currentFloor != pf) {
 	        	printf("Elevator arrives on floor %d\n", currentFloor );
 				pf = currentFloor;
 			}
 		}
-        if (elevatorCaptured)
-            printf("Elevator Captured\n");
+//        if (elevatorCaptured)
+//            printf("Elevator Captured\n");
         //      2.5 Release elevatorLock
         elevatorLock->Release();
-        for(int j =0 ; j< 1000000; j++) {
-            currentThread->Yield();
-        }
+
 
     }
 }
@@ -276,7 +288,7 @@ ELEVATOR::ELEVATOR(int lNumFloors) {
 	maxOccupancy = 5;
 	// eTimer = new Timer(freeElevatorLock, (int)(&e), false);
     personLock = new Lock("Person Lock");
-    floorLock = new Lock("Floor Lock");
+//    floorLock = new Lock("Floor Lock");
 
 }
 
@@ -294,17 +306,20 @@ int getPersonID() {
 	personIDLock->Release();
 	return personID;
 }
-
+static int totalOut = 0;
+static int totalIn = 0;
 void ELEVATOR::hailElevator(Person *p) {
     // 1. Increment waiting persons atFloor
     IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
-
-	personsWaiting[currentFloor]++;
+	personsWaiting[p->atFloor]++;
+//    for(int j =0 ; j< 1000000; j++) {
+//        currentThread->Yield();
+//    }
     // 2. Hail Elevator
 	// elevatorLock->Release();
     // 2.5 Acquire elevatorLock;
 	elevatorLock->Acquire();
-    floorLock->Acquire();
+//    floorLock->Acquire();
     addToPP(listEntering[p->atFloor],p);
     // 3. Wait for elevator to arrive atFloor [entering[p->atFloor]->wait(elevatorLock)]
 	entering[p->atFloor]->Wait(elevatorLock);
@@ -316,11 +331,9 @@ void ELEVATOR::hailElevator(Person *p) {
 	personsWaiting[p->atFloor]--;
     removeFromPP(listEntering[p->atFloor],p);
     addToPP(listLeaving[p->toFloor],p);
-    floorLock->Release();
-    for(int j =0 ; j< 1000000; j++) {
-        currentThread->Yield();
-    }
-    floorLock->Acquire();
+//    floorLock->Release();
+//    sleep(1);
+//    floorLock->Acquire();
     // 7. Increment persons inside elevator [occupancy++]
 	occupancy++;
     // 8. Wait for elevator to reach toFloor [leaving[p->toFloor]->wait(elevatorLock)]
@@ -331,16 +344,20 @@ void ELEVATOR::hailElevator(Person *p) {
 
     ASSERT(currentFloor == p->toFloor);
     printf("Person %d got out of the elevator.\n", p->id);
+    totalOut++;
+
     // 10. Decrement persons inside elevator
 	occupancy--;
     // 11. Release elevatorLock;
-    floorLock->Release();
+//    floorLock->Release();
 	elevatorLock->Release();
     for(int j =0 ; j< 1000000; j++) {
         currentThread->Yield();
     }
-
-   (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
+    testHalt((int)&e);
+    printf("total of %d out %d\n",totalIn, totalIn - totalOut);
+//    if (totalIn == totalOut) interrupt->Halt();
+    (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
 
 }
 
@@ -374,7 +391,7 @@ void ArrivingGoingFromTo(int atFloor, int toFloor) {
     p->id = getNextPersonID();
     p->atFloor = atFloor;
     p->toFloor = toFloor;
-
+    totalIn++;
     // Creates Person Thread
     Thread *t = new Thread("Person " + p->id);
     t->Fork(PersonThread, (int)p);
