@@ -54,7 +54,11 @@ typedef void (*VoidNoArgFunctionPtr)();
 
 // Include interface that isolates us from the host machine system library.
 // Requires definition of bool, and VoidFunctionPtr
-#include "sysdep.h"				
+#ifdef __JETBRAINS_IDE__
+#include "../machine/sysdep.h"
+#else
+#include "sysdep.h"
+#endif
 
 // Interface to debugging routines.
 

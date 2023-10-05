@@ -37,6 +37,11 @@ const int multiple = 5;
 //	"debugName" is an arbitrary name, useful for debugging.
 //	"initialValue" is the initial value of the semaphore.
 //----------------------------------------------------------------------
+#ifdef __JETBRAINS_IDE__
+// Stuff that only clion will see goes here
+#define EXTERN_LOCKS
+#define EXTERN_SEMAPHORES
+#endif
 #if defined(HW1_SEMAPHORES) || defined(EXTERN_SEMAPHORES)
 Semaphore::Semaphore(const char* debugName, int initialValue)
 {
@@ -239,8 +244,5 @@ int Condition::Broadcast(Lock* conditionLock) {
 	}
     return i;
  }
- bool Condition::IsEmpty() {
-    return queue->IsEmpty();
-}		// is the list empty?
 
 

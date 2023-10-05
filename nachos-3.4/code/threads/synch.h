@@ -133,7 +133,7 @@ class Condition {
     Thread * Signal(Lock *conditionLock);   // conditionLock must be held by
     int Broadcast(Lock *conditionLock);// the currentThread for all of
 					// these operations
-    bool IsEmpty();		// is the list empty?
+
 
   private:
     const char* name;

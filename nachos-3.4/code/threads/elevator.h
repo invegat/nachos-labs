@@ -1,6 +1,11 @@
 
 #ifndef ELEVATOR_H
 #define ELEVATOR_H
+#ifdef __JETBRAINS_IDE__
+#include "synch.h"
+#include <stdio.h>
+#include "utility.h"
+#endif
 #include<unistd.h>
 #include "copyright.h"
 
@@ -42,6 +47,7 @@ private:
 	Timer * eTimer;
     void addToPP(Person * pp[], Person * p);
     void removeFromPP(Person * pp[], Person * p);
+    bool removeFromPPFirst(Person * pp[]);
     Lock * personLock;
 //    Lock *floorLock;
     int getFloor(Person ** pp[], bool at);

@@ -48,6 +48,10 @@
 //          HW1_SEMAPHORES
 // -D       HW1_SEMAPHORES 
 // #if defined(HW1_SEMAPHORES) || defined(HW1_LOCKS) || defined(USER_PROGRAM) 
+#ifdef __JETBRAINS_IDE__
+#define HW1_ELEVATOR
+#include <stdio.h>
+#endif
 #include <stdlib.h> // for -rs switch srand
 // #endif
 
@@ -133,6 +137,7 @@ main(int argc, char **argv)
 
 #if defined(HW1_ELEVATOR)
 	ElevatorTest(5, 5);
+    printf("main yielding\n");
     while (1) currentThread->Yield();
 #endif
 
