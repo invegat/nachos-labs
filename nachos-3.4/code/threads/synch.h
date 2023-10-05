@@ -17,10 +17,12 @@
 #ifndef SYNCH_H
 #define SYNCH_H
 
+#ifdef __JETBRAINS_IDE__
+#define HW1_ELEVATOR
+#endif
 #include "copyright.h"
 #include "thread.h"
 #include "list.h"
-
 // The following class defines a "semaphore" whose value is a non-negative
 // integer.  The semaphore has only two operations P() and V():
 //
@@ -118,6 +120,7 @@ class Lock {
 // The consequence of using Mesa-style semantics is that some other thread
 // can acquire the lock, and change data structures, before the woken
 // thread gets a chance to run.
+class SynchList;
 
 class Condition {
   public:
@@ -139,7 +142,9 @@ class Condition {
     const char* name;
     // plus some other stuff you'll need to define
     List *queue;       // threads waiting on the condition variable
+    Lock * queueLock;
 	// Lock * oneWait;
 
 };
+
 #endif // SYNCH_H

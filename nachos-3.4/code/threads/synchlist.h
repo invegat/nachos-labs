@@ -12,7 +12,6 @@
 #define SYNCHLIST_H
 
 #include "copyright.h"
-#include "list.h"
 #include "synch.h"
 
 // The following class defines a "synchronized list" -- a list for which:

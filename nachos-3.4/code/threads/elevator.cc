@@ -1,4 +1,8 @@
-
+#ifdef __JETBRAINS_IDE__
+#define EXTERN_LOCKS
+#define EXTERN_SEMAPHORES
+#include "../machine/interrupt.h"
+#endif
 #include "copyright.h"
 #include "system.h"
 #include "synch.h"
@@ -61,7 +65,7 @@ void ELEVATOR::addToPP(Person *pp[], Person * p) {
     personLock->Acquire();
     for (int i = 0;i<tp;i++) {
         if (pp[i] == (Person *)-1) {
-            pp[1] = p;
+            pp[i] = p;
 //            printf("pp[i] == -1 personCount is %d\n", personCount(pp));
             break;
         }
@@ -309,6 +313,7 @@ ELEVATOR::ELEVATOR(int lNumFloors) {
 	maxOccupancy = 5;
 	// eTimer = new Timer(freeElevatorLock, (int)(&e), false);
     personLock = new Lock("Person Lock");
+    conditionLock = new Lock("ConditionLock");
 //    floorLock = new Lock("Floor Lock");
 
 }
@@ -336,6 +341,7 @@ void ELEVATOR::hailElevator(Person *p) {
     }
     // 1. Increment waiting persons atFloor
     personsWaiting[p->atFloor]++;
+    addToPP(listEntering[p->atFloor],p);
 //    for(int j =0 ; j< 1000000; j++) {
 //        currentThread->Yield();
 //    }
@@ -344,7 +350,6 @@ void ELEVATOR::hailElevator(Person *p) {
     // 2.5 Acquire elevatorLock;
 	elevatorLock->Acquire();
 //    floorLock->Acquire();
-    addToPP(listEntering[p->atFloor],p);
     // 3. Wait for elevator to arrive atFloor [entering[p->atFloor]->wait(elevatorLock)]
 	entering[p->atFloor]->Wait(elevatorLock);
     // 5. Get into elevator

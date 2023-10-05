@@ -136,8 +136,8 @@ main(int argc, char **argv)
 
 
 #if defined(HW1_ELEVATOR)
-	ElevatorTest(5, 5);
-    printf("main yielding\n");
+	ElevatorTest(100, 50);
+    // printf("main yielding\n");  // if it gets here program has failed
     while (1) currentThread->Yield();
 #endif
 

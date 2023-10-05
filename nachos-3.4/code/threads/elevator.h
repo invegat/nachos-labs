@@ -49,6 +49,7 @@ private:
     void removeFromPP(Person * pp[], Person * p);
     bool removeFromPPFirst(Person * pp[]);
     Lock * personLock;
+    Lock * conditionLock;
 //    Lock *floorLock;
     int getFloor(Person ** pp[], bool at);
     bool onElevator(Person * p);

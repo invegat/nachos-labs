@@ -23,12 +23,10 @@
 
 
 #include "copyright.h"
-#include "synch.h"
 #include "system.h"
+#include "synch.h"
 
-int sortKey = 0;
-extern int n;
-const int multiple = 5;
+
 
 //----------------------------------------------------------------------
 // Semaphore::Semaphore
@@ -41,6 +39,7 @@ const int multiple = 5;
 // Stuff that only clion will see goes here
 #define EXTERN_LOCKS
 #define EXTERN_SEMAPHORES
+#include "../machine/interrupt.h"
 #endif
 #if defined(HW1_SEMAPHORES) || defined(EXTERN_SEMAPHORES)
 Semaphore::Semaphore(const char* debugName, int initialValue)
@@ -185,7 +184,8 @@ bool Lock::isHeldByCurrentThread() {
 //static Lock * oneWait = new Lock("One_Wait");
 Condition::Condition(const char* debugName) {
     name = debugName; // init
-    queue =  new List;
+    queue =  new List();
+    queueLock = new Lock("Queue Lcck");
 }
 Condition::~Condition() {
     delete queue;
@@ -202,8 +202,10 @@ void Condition::Wait(Lock* conditionLock) {
     // Release the lock
 	conditionLock->Release();
 
+    queueLock->Acquire();
     // put self in the queue of waiting threads
 	queue->Append((void *)currentThread);
+    queueLock->Release();
 	currentThread->Sleep();
 
     // Re-acquire the lock
@@ -218,9 +220,9 @@ Thread * Condition::Signal(Lock* conditionLock) {
     ASSERT(conditionLock->isHeldByCurrentThread());
 
     // Dequeue one of the threads in the queue
-
+    queueLock->Acquire();
     Thread *thread = (Thread *)queue->Remove();
-
+    queueLock->Release();
     // If thread exists, wake it up.
 
 	if (thread != NULL) 
@@ -235,12 +237,16 @@ int Condition::Broadcast(Lock* conditionLock) {
     ASSERT(conditionLock->isHeldByCurrentThread());
     int i = 0;
     // Dequeue all threads in the queue one-by-one
+    queueLock->Acquire();
 	Thread *thread = (Thread *)queue->Remove();
+    queueLock->Release();
     // Wakeup each thread
 	while (thread!= NULL) {
         i++;
 		scheduler->ReadyToRun(thread);
-		thread = (Thread *)queue->Remove();		
+        queueLock->Acquire();
+		thread = (Thread *)queue->Remove();
+        queueLock->Release();
 	}
     return i;
  }

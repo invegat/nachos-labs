@@ -155,11 +155,12 @@ synch.o: ../threads/synch.cc /usr/include/stdc-predef.h \
  ../machine/interrupt.h ../machine/stats.h ../machine/timer.h \
  ../userprog/memorymanager.h ../userprog/pcbmanager.h \
  ../filesys/synchdisk.h ../machine/disk.h ../threads/synch.h \
- ../network/post.h ../machine/network.h ../threads/synchlist.h
+ ../network/post.h ../machine/network.h ../threads/synchlist.h \
+ ../threads/synchlist.h
 synchlist.o: ../threads/synchlist.cc /usr/include/stdc-predef.h \
- ../threads/copyright.h ../threads/synchlist.h ../threads/list.h \
- ../threads/utility.h ../threads/bool.h ../machine/sysdep.h \
- ../threads/copyright.h /usr/include/stdio.h \
+ ../threads/copyright.h ../threads/synchlist.h ../threads/synch.h \
+ ../threads/thread.h ../threads/utility.h ../threads/bool.h \
+ ../machine/sysdep.h ../threads/copyright.h /usr/include/stdio.h \
  /usr/include/bits/libc-header-start.h /usr/include/features.h \
  /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h \
  /usr/include/bits/long-double.h /usr/include/gnu/stubs.h \
@@ -173,11 +174,11 @@ synchlist.o: ../threads/synchlist.cc /usr/include/stdc-predef.h \
  /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
  /usr/include/string.h /usr/include/bits/types/locale_t.h \
  /usr/include/bits/types/__locale_t.h /usr/include/strings.h \
- ../threads/synch.h ../threads/thread.h ../machine/machine.h \
- ../threads/utility.h ../machine/translate.h ../machine/disk.h \
- ../userprog/addrspace.h ../filesys/filesys.h ../filesys/openfile.h \
- ../userprog/pcb.h ../threads/list.h ../userprog/pcbmanager.h \
- ../userprog/bitmap.h ../filesys/openfile.h
+ ../machine/machine.h ../threads/utility.h ../machine/translate.h \
+ ../machine/disk.h ../userprog/addrspace.h ../filesys/filesys.h \
+ ../filesys/openfile.h ../userprog/pcb.h ../threads/list.h \
+ ../userprog/pcbmanager.h ../userprog/bitmap.h ../filesys/openfile.h \
+ ../threads/list.h
 system.o: ../threads/system.cc /usr/include/stdc-predef.h \
  ../threads/copyright.h ../threads/system.h ../threads/utility.h \
  ../threads/bool.h ../machine/sysdep.h ../threads/copyright.h \
@@ -1003,12 +1004,12 @@ post.o: ../network/post.cc /usr/include/stdc-predef.h \
  /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
  /usr/include/string.h /usr/include/bits/types/locale_t.h \
  /usr/include/bits/types/__locale_t.h /usr/include/strings.h \
- ../threads/synchlist.h ../threads/list.h ../threads/utility.h \
- ../threads/synch.h ../threads/thread.h ../machine/machine.h \
- ../machine/translate.h ../machine/disk.h ../userprog/addrspace.h \
- ../filesys/filesys.h ../filesys/openfile.h ../userprog/pcb.h \
- ../threads/list.h ../userprog/pcbmanager.h ../userprog/bitmap.h \
- ../filesys/openfile.h
+ ../threads/synchlist.h ../threads/synch.h ../threads/thread.h \
+ ../threads/utility.h ../machine/machine.h ../machine/translate.h \
+ ../machine/disk.h ../userprog/addrspace.h ../filesys/filesys.h \
+ ../filesys/openfile.h ../userprog/pcb.h ../threads/list.h \
+ ../userprog/pcbmanager.h ../userprog/bitmap.h ../filesys/openfile.h \
+ ../threads/list.h
 network.o: ../machine/network.cc /usr/include/stdc-predef.h \
  ../threads/copyright.h ../threads/system.h ../threads/copyright.h \
  ../threads/utility.h ../threads/bool.h ../machine/sysdep.h \
