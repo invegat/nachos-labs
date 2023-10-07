@@ -35,13 +35,13 @@ public:
 	int numFloors;
     Person *personsOn[tp];
     Lock *elevatorLock;
-
-private:
-    int currentFloor;
-    Condition **entering;
-    Condition **leaving;
     Person ***listEntering;
     Person ***listLeaving;
+    int currentFloor;
+
+private:
+    Condition **entering;
+    Condition **leaving;
     int maxOccupancy;
 	bool up;
 	Timer * eTimer;

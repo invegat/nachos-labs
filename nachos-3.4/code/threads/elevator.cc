@@ -3,6 +3,8 @@
 #define EXTERN_SEMAPHORES
 #include "../machine/interrupt.h"
 #define LOG
+#define DEVELOPMENT
+#define ELEVATOR_DELAY
 #endif
 #include "copyright.h"
 #include "system.h"
@@ -13,6 +15,12 @@ static bool inAction = true, haltEnabled = false;
 #include <stdio.h>
 extern FILE *log_file;
 #endif
+#ifndef ELEVATOR_DELAY
+const int elevatorDelay = 20000;
+#else
+const int elevatorDelay = ELEVATOR_DELAY;
+#endif
+
 //static void freeElevatorLock(int pE) {
 //    ELEVATOR * e = *(ELEVATOR **)pE;
 //    e->elevatorLock->Release();
@@ -67,14 +75,23 @@ static void testHalt(int pE) {
 		// interrupt->Halt();		
 //		if (e->occupancy == 0 && totalWaiting == 0) interrupt->Halt();
 		if (totalWaiting == 0) {
-            printf("testHalt Halt\n");
-            for(int j =0 ; j< 1000000; j++) {
+            //printf("testHalt Halt\n");
+#if defined(LOG) && defined(DEVELOPMENT)
+            fprintf(log_file, "testHalt Halt\n");
+#endif
+            for (int j = 0; j < 1000000; j++) {
                 currentThread->Yield();
             }
 #ifdef LOG
-            fclose(log_file);
+//            if (elevatorDelay <= 50000)
+            if (false)
+                fclose(log_file);
+            else
+                fflush(log_file);
 #endif
-            interrupt->Halt();
+//            if (elevatorDelay <= 50000)
+            if (false)
+                interrupt->Halt();
         }
 	}
    (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
@@ -154,23 +171,48 @@ int ELEVATOR::getFloor(Person **pp[], bool at) {
 
 
 
-ELEVATOR *e;
 int pf = -1;
-#ifndef ELEVATOR_DELAY
-const int elevatorDelay = 20000;
-#else
-const int elevatorDelay = ELEVATOR_DELAY;
-#endif
+static int totalOut = 0;
+static int totalIn = 0;
+
+static void haltTest(int pE) {
+    ELEVATOR * e = *(ELEVATOR **)pE;
+    while(1) {
+        if ((totalIn == totalOut) && (active(pE) == 0)) {
+            bool ccf = true; // consistent currentFloor == targetFloor
+            int targetFloor = (e->numFloors + 1) / 2;
+            if (targetFloor == e->currentFloor) {
+                for (int j = 0; j < 10000000; j++) {
+                    currentThread->Yield();
+                    if ((e->currentFloor != targetFloor) || (active(pE) > 0)  || (totalIn != totalOut)) {
+                        ccf = false;
+                        break;
+                    }
+                }
+
+                if (ccf)
+                    interrupt->Halt();
+            }
+        }
+        for(int j =0 ; j<1000; j++) {
+            currentThread->Yield();
+        }
+    }
+
+}
+ELEVATOR *e;
 
 void ELEVATOR::start() {
 
-    printf("elevatorDelay: %d\n", elevatorDelay);
-#ifdef LOG
+//    printf("elevatorDelay: %d\n", elevatorDelay);
+#if defined(LOG) && defined(DEVELOPMENT)
     fprintf(log_file, "elevatorDelay: %d\n", elevatorDelay);
 #endif
     int from = -1;
     int to = -1;
     int lastActive = -1;
+    Thread* t = new Thread("Halt Thread");
+    t->Fork(haltTest, (int)&e);
 	
     while(1) {
 
@@ -211,16 +253,19 @@ void ELEVATOR::start() {
 
         if (from == -1 && to == -1) {
 //            if (!firstTestHalt) interrupt->Halt();
-            if (currentFloor < numFloors / 2)
+            bool of = ((numFloors % 2) == 1); // odd # of floors
+            if (of ? currentFloor <= numFloors / 2 : currentFloor < numFloors / 2)
                 currentFloor++;
-            if (currentFloor >= (numFloors + 1) / 2)
+            else if (currentFloor > (numFloors + 1) / 2)
                 currentFloor--;
-//            sleep(1);
         }
+//            sleep(1);
+
         if ((totalActive > 2 || personCount(personsOn) > 1) && firstTestHalt) {
             firstTestHalt = false;
-            printf("activating testHalt\n");
-#ifdef LOG
+            // printf("activating testHalt\n");
+#if defined(LOG) && defined(DEVELOPMENT)
+                          //DEVELOPMENT
             fprintf(log_file, "activating testHalt\n");
 #endif
         }
@@ -314,6 +359,9 @@ void ELEVATOR::start() {
 void ElevatorThread(int numFloors) {
 
     printf("Elevator with %d floors was created!\n", numFloors);
+#ifdef LOG
+    fprintf(log_file, "Elevator with %d floors was created!\n", numFloors);
+#endif
 
     e = new ELEVATOR(numFloors);
 
@@ -370,8 +418,6 @@ int getPersonID() {
 	personIDLock->Release();
 	return personID;
 }
-static int totalOut = 0;
-static int totalIn = 0;
 void ELEVATOR::hailElevator(Person *p) {
     IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
     // 1. Increment waiting persons atFloor
@@ -429,7 +475,6 @@ void ELEVATOR::hailElevator(Person *p) {
 
     testHalt((int)&e);
 //    printf("total of %d out %d\n",totalIn, totalIn - totalOut);
-//    if (totalIn == totalOut) interrupt->Halt();
     (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
 //    for(int j =0 ; j< 10; j++) {
 //        currentThread->Yield();
