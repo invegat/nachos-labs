@@ -137,6 +137,7 @@ int pf = -1;
 static int totalOut = 0;
 static int totalIn = 0;
 
+#ifndef DISABLE_HALT
 static void haltTest(int pE) {
     ELEVATOR * e = *(ELEVATOR **)pE;
     while(1) {
@@ -166,6 +167,7 @@ static void haltTest(int pE) {
     }
 
 }
+#endif
 ELEVATOR *e;
 
 void ELEVATOR::start() {
@@ -177,8 +179,10 @@ void ELEVATOR::start() {
     int from = -1;
     int to = -1;
     int lastActive = -1;
+#ifndef DISABLE_HALT
     Thread* t = new Thread("Halt Thread");
     t->Fork(haltTest, (int)&e);
+#endif
 	
     while(1) {
 
