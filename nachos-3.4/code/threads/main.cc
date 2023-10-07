@@ -51,6 +51,9 @@
 #ifdef __JETBRAINS_IDE__
 #define HW1_ELEVATOR
 #include <stdio.h>
+#define LOG
+#define DEVELOPMENT
+#define THREADS
 #endif
 #include <stdlib.h> // for -rs switch srand
 // #endif
@@ -59,6 +62,10 @@
 #include "copyright.h"
 #undef MAIN
 
+#ifdef LOG
+#include <stdio.h>
+    FILE *log_file;
+#endif
 #include "utility.h"
 #include "system.h"
 
@@ -136,9 +143,37 @@ main(int argc, char **argv)
 
 
 #if defined(HW1_ELEVATOR)
-	ElevatorTest(100, 50);
-    // printf("main yielding\n");  // if it gets here program has failed
-    while (1) currentThread->Yield();
+#ifdef FLOORS
+    const int floors = FLOORS;
+#else
+    const int floors = 100;
+#endif
+#ifdef PEOPLE
+    const int people = PEOPLE;
+#else
+    const int people = 50;
+#endif
+#ifdef LOG
+    char buf[100];
+    sprintf(buf, "f%d.p%d.log", floors, people);
+    log_file = fopen(buf, "w");
+#endif
+	ElevatorTest(floors, people);
+#if defined(LOG) && defined(DEVELOPMEMT)
+    fprintf(log_file, "main yielding\n");
+#endif
+    for(int j =0 ; j< 100000; j++) {
+        currentThread->Yield();
+    }
+#ifdef LOG
+    fflush(log_file);
+#endif
+    while (1) {
+        currentThread->Yield();
+#ifdef LOG
+        fflush(log_file);
+#endif
+    }
 #endif
 
 

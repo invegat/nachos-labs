@@ -10,7 +10,6 @@
 #include "system.h"
 #include "synch.h"
 #include "elevator.h"
-static bool inAction = true, haltEnabled = false;
 #ifdef LOG
 #include <stdio.h>
 extern FILE *log_file;
@@ -46,7 +45,6 @@ static int personCount(Person *p[]) {
 		}		
 	return totalOn;
 }
-static bool firstTestHalt = true;
 static int active(int pE) {
     ELEVATOR * e = *(ELEVATOR **)pE;
     int totalWaiting = 0;
@@ -59,42 +57,6 @@ static int active(int pE) {
     totalWaiting += personCount(e->personsOn);
     return totalWaiting;
 
-}
-static int lTotalWaiting = -1;
-static void testHalt(int pE) {
-    IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
-	if (inAction) {
-		haltEnabled = true;
-    }
-	if (haltEnabled && (!firstTestHalt)) {
-        int totalWaiting = active(pE);
-		if (lTotalWaiting != totalWaiting) {
-//			printf("total Waiting %d\n", totalWaiting);
-			lTotalWaiting = totalWaiting;
-		}	
-		// interrupt->Halt();		
-//		if (e->occupancy == 0 && totalWaiting == 0) interrupt->Halt();
-		if (totalWaiting == 0) {
-            //printf("testHalt Halt\n");
-#if defined(LOG) && defined(DEVELOPMENT)
-            fprintf(log_file, "testHalt Halt\n");
-#endif
-            for (int j = 0; j < 1000000; j++) {
-                currentThread->Yield();
-            }
-#ifdef LOG
-//            if (elevatorDelay <= 50000)
-            if (false)
-                fclose(log_file);
-            else
-                fflush(log_file);
-#endif
-//            if (elevatorDelay <= 50000)
-            if (false)
-                interrupt->Halt();
-        }
-	}
-   (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
 }
 void ELEVATOR::addToPP(Person *pp[], Person * p) {
     personLock->Acquire();
@@ -190,8 +152,12 @@ static void haltTest(int pE) {
                     }
                 }
 
-                if (ccf)
+                if (ccf) {
+#ifdef LOG
+                    fclose(log_file);
+#endif
                     interrupt->Halt();
+                }
             }
         }
         for(int j =0 ; j<1000; j++) {
@@ -258,16 +224,6 @@ void ELEVATOR::start() {
                 currentFloor++;
             else if (currentFloor > (numFloors + 1) / 2)
                 currentFloor--;
-        }
-//            sleep(1);
-
-        if ((totalActive > 2 || personCount(personsOn) > 1) && firstTestHalt) {
-            firstTestHalt = false;
-            // printf("activating testHalt\n");
-#if defined(LOG) && defined(DEVELOPMENT)
-                          //DEVELOPMENT
-            fprintf(log_file, "activating testHalt\n");
-#endif
         }
 
 		if ((from > 0) && (to == -1 || (abs(to - currentFloor) > abs(from - currentFloor))) && (occupancy < maxOccupancy)   ) {
@@ -473,7 +429,7 @@ void ELEVATOR::hailElevator(Person *p) {
 //    floorLock->Release();
 	elevatorLock->Release();
 
-    testHalt((int)&e);
+//    testHalt((int)&e);
 //    printf("total of %d out %d\n",totalIn, totalIn - totalOut);
     (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
 //    for(int j =0 ; j< 10; j++) {
@@ -492,7 +448,6 @@ void PersonThread(int person) {
     fprintf(log_file, "Person %d wants to go from floor %d to %d\n", p->id, p->atFloor, p->toFloor);
 #endif
     e->hailElevator(p);
-	inAction = false;
    (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
 }
 
@@ -507,7 +462,6 @@ int getNextPersonID() {
 
 void ArrivingGoingFromTo(int atFloor, int toFloor) {
     IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupt
-	inAction = true;	
     // Create Person struct
     Person *p = new Person;
     p->id = getNextPersonID();
