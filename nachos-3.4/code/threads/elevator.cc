@@ -14,11 +14,7 @@
 #include <stdio.h>
 extern FILE *log_file;
 #endif
-#ifndef ELEVATOR_DELAY
-const int elevatorDelay = 20000;
-#else
-const int elevatorDelay = ELEVATOR_DELAY;
-#endif
+#include "elevatorDelay.h"
 
 //static void freeElevatorLock(int pE) {
 //    ELEVATOR * e = *(ELEVATOR **)pE;
@@ -103,6 +99,7 @@ bool ELEVATOR::onElevator(Person * target) {
 int nextPersonID = 1;
 Lock *personIDLock = new Lock("PersonIDLock");
 
+
 int ELEVATOR::getFloor(Person **pp[], bool at) {
     for (int delta = 0;delta < numFloors;delta++) {
         if (currentFloor + delta <= numFloors) {
@@ -138,9 +135,12 @@ static int totalOut = 0;
 static int totalIn = 0;
 
 #ifndef DISABLE_HALT
+Semaphore * haltSem = new Semaphore("halt", 1);
 static void haltTest(int pE) {
     ELEVATOR * e = *(ELEVATOR **)pE;
     while(1) {
+        IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
+
         if ((totalIn == totalOut) && (active(pE) == 0)) {
             bool ccf = true; // consistent currentFloor == targetFloor
             int targetFloor = (e->numFloors + 1) / 2;
@@ -155,15 +155,21 @@ static void haltTest(int pE) {
 
                 if (ccf) {
 #ifdef LOG
+#ifdef DEVELOPMENT
+                    printf("haltTest Halt\n");
+#endif
                     fclose(log_file);
 #endif
                     interrupt->Halt();
                 }
             }
         }
-        for(int j =0 ; j<1000; j++) {
-            currentThread->Yield();
-        }
+//        for(int j =0 ; j<1000; j++) {
+//            currentThread->Yield();
+//        }
+        haltSem->P();
+        (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
+
     }
 
 }
@@ -193,9 +199,10 @@ void ELEVATOR::start() {
         elevatorLock->Acquire();
 //        elevatorCaptured = true;
 
+#ifndef DISABLE_HALT
+        haltSem->V();
+#endif
 
-
-        int totalActive = active((int)&e);
 
 
         if (from < 1)
@@ -203,6 +210,7 @@ void ELEVATOR::start() {
         if (to < 1)
             to = getFloor(listLeaving, false);
 
+        int totalActive = active((int)&e);
 
         if (totalActive != lastActive) {
 //            printf("totalActive %d\n", totalActive);
@@ -222,9 +230,7 @@ void ELEVATOR::start() {
 //        bool floorCaptured = false;
 
         if (from == -1 && to == -1) {
-//            if (!firstTestHalt) interrupt->Halt();
-            bool of = ((numFloors % 2) == 1); // odd # of floors
-            if (of ? currentFloor <= numFloors / 2 : currentFloor < numFloors / 2)
+            if (currentFloor < (numFloors + 1) /2)
                 currentFloor++;
             else if (currentFloor > (numFloors + 1) / 2)
                 currentFloor--;

@@ -57,11 +57,13 @@
 #endif
 #include <stdlib.h> // for -rs switch srand
 // #endif
+#include <string.h>
+
 
 #define MAIN
 #include "copyright.h"
 #undef MAIN
-
+#include "elevatorDelay.h"
 #ifdef LOG
 #include <stdio.h>
     FILE *log_file;
@@ -73,7 +75,13 @@
 int testnum = 4;
 int n = 0;
 #endif
-#include <string.h>
+
+#ifndef ELEVATOR_DELAY
+const int elevatorDelay = 20000;
+#else
+const int elevatorDelay = ELEVATOR_DELAY;
+#endif
+
 
 // External functions used by this file
 
@@ -155,7 +163,7 @@ main(int argc, char **argv)
 #endif
 #ifdef LOG
     char buf[100];
-    sprintf(buf, "f%d.p%d.log", floors, people);
+    sprintf(buf, "f%d.p%d.d%d.log", floors, people, elevatorDelay);
     log_file = fopen(buf, "w");
 #endif
 	ElevatorTest(floors, people);
@@ -164,7 +172,9 @@ main(int argc, char **argv)
 #endif
     for(int j =0 ; j< 100000; j++) {
         currentThread->Yield();
+
     }
+
 #ifdef LOG
     fflush(log_file);
 #endif
