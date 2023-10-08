@@ -45,7 +45,7 @@ main(int argc, char **argv)
         }
         cout << k << " matches found" << endl;
 
-        regex nameMatcher("f(\\d+)\\.p(\\d+)\\.log");
+        regex nameMatcher("f(\\d+)\\.p(\\d+)\\.d(\\d+)\\.log");
         smatch nameMatch;
         string* fn = new string(argv[1]);
         if (regex_search(*fn, nameMatch, nameMatcher) == true) {

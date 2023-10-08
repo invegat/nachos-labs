@@ -25,7 +25,7 @@
 # All rights reserved.  See copyright.h for copyright notice and limitation
 # of liability and disclaimer of warranty provisions.
 
-CFLAGS = -g -Wall -Wshadow -m32 $(INCPATH) $(DEFINES) $(HOST) -DCHANGED -DTHREADS -DEXTERN_LOCKS -DEXTERN_SEMAPHORES 
+CFLAGS = -g -Wall -Wshadow -m32 $(INCPATH) $(DEFINES) $(HOST) -DCHANGED -DEXTERN_LOCKS -DEXTERN_SEMAPHORES
 $(info    CFLAGS is $(CFLAGS))
 # These definitions may change as the software is updated.
 # Some of them are also system dependent

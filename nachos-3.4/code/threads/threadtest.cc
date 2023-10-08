@@ -9,9 +9,6 @@
 // All rights reserved.  See copyright.h for copyright notice and limitation 
 // of liability and disclaimer of warranty provisions.
 
-#if defined(HW1_SEMAPHORES) || defined(HW1_LOCKS)
-#include <stdlib.h> // for -rs switch srand
-#endif
 
 //#ifdef HW1_SEMAPHORES
 //#include <time.h>
@@ -32,8 +29,8 @@ Lock * lock = new Lock("lockTest");
 
 
 // testnum is set in main.cc
-extern int testnum;
-extern int n;
+//extern int testnum;
+//extern int n;
 //----------------------------------------------------------------------
 // SimpleThread
 // 	Loop 5 times, yielding the CPU to another ready thread 
@@ -42,10 +39,9 @@ extern int n;
 //	"which" is simply a number identifying the thread, for debugging
 //	purposes.
 //----------------------------------------------------------------------
-#ifdef THREADS
+#ifdef CHANGED
 int SharedVariable;
 int numThreadsActive; // used to implement barrier upon completion
-extern int n;
 
 void SimpleThread(int which) {
     int num, val;
@@ -78,39 +74,36 @@ void SimpleThread(int which) {
     val = SharedVariable;
     printf("Thread %d sees final value %d\n", which, val);
 }
-/*
-int getRandom(int n,int &map) {
-	int i = 0;
-	do {
-		i = rand() % n;
-	} while((myPow(2,i) & map) == 0);
-	map = map ^ myPow(2,i);
-	return i;	 
-}
-*/
 //----------------------------------------------------------------------
 // ThreadTest
 // 	Invoke a test routine.
 //----------------------------------------------------------------------
 void
-ThreadTest() {
+ThreadTest(int n) {
     DEBUG('t', "Entering SimpleTest");
     Thread *t;
-	n = testnum;
     numThreadsActive = n;
     printf("numThreadsActive =%d\n", numThreadsActive);
     for (int i = 1;i<n;i++)
     {
         t = new Thread("forked thread");
         t->Fork(SimpleThread, i);
-#ifdef HW1_LOCKS
-        DEBUG(i, "forked thread");
-#endif
+        DEBUG('i', "forked thread");
     }
     SimpleThread(0);
 
 }
-#else
+#else // CHANGED not defined
+void
+SimpleThread(int which)
+{
+    int num;
+
+    for (num = 0; num < 5; num++) {
+        printf("*** thread %d looped %d times\n", which, num);
+        currentThread->Yield();
+    }
+}
 //----------------------------------------------------------------------
 // ThreadTest1
 // 	Set up a ping-pong between two threads, by forking a thread 
@@ -142,6 +135,6 @@ ThreadTest() {
 	        break;
     }
 }
-#endif
+#endif // CHANGED
 
 

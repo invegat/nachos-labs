@@ -49,11 +49,11 @@
 // -D       HW1_SEMAPHORES 
 // #if defined(HW1_SEMAPHORES) || defined(HW1_LOCKS) || defined(USER_PROGRAM) 
 #ifdef __JETBRAINS_IDE__
-#define HW1_ELEVATOR
-#include <stdio.h>
-#define LOG
-#define DEVELOPMENT
-#define THREADS
+//    #define HW1_ELEVATOR
+    #include <stdio.h>
+    #define LOG
+    #define DEVELOPMENT
+    #define THREADS
 #endif
 #include <stdlib.h> // for -rs switch srand
 // #endif
@@ -73,7 +73,6 @@
 
 #ifdef THREADS
 int testnum = 4;
-int n = 0;
 #endif
 
 #ifndef ELEVATOR_DELAY
@@ -85,12 +84,14 @@ const int elevatorDelay = ELEVATOR_DELAY;
 
 // External functions used by this file
 
-#if defined(THREADS)
-extern void ThreadTest(), Copy(char *unixFile, char *nachosFile);
+#if defined(THREADS) && defined(CHANGED)
+extern void ThreadTest(int n), Copy(char *unixFile, char *nachosFile);
 #else
 extern void ThreadTest(void), Copy(char *unixFile, char *nachosFile);
 #endif
+#ifdef HW1_ELEVATOR
 extern void ElevatorTest(int numFloors, int numPersons);
+#endif
 extern void Ping();
 extern void Print(char *file), PerformanceTest(void);
 extern void StartProcess(char *file), ConsoleTest(char *in, char *out);
@@ -135,54 +136,54 @@ main(int argc, char **argv)
         break;
       }
     }
+    int n = testnum;
 #endif
-	n = testnum;
 
-#ifndef THREADS
+#if !defined(THREADS) && !defined(HW1_ELEVATOR)
 	Ping();
 #else
-	#ifndef HW1_ELEVATOR
-		SemaphorePing();
-//		LockTest();
-//    	ThreadTest();
-//		Ping();
-	#endif
+    #ifdef CHANGED
+	    #ifndef HW1_ELEVATOR
+//		    SemaphorePing();
+//		    LockTest();
+    	    ThreadTest(n);
+        #endif
+    #endif
 #endif
 
 
 #if defined(HW1_ELEVATOR)
-#ifdef FLOORS
-    const int floors = FLOORS;
-#else
-    const int floors = 100;
-#endif
-#ifdef PEOPLE
-    const int people = PEOPLE;
-#else
-    const int people = 50;
-#endif
-#ifdef LOG
-    char buf[100];
-    sprintf(buf, "f%d.p%d.d%d.log", floors, people, elevatorDelay);
-    log_file = fopen(buf, "w");
-#endif
+    #ifdef FLOORS
+        const int floors = FLOORS;
+    #else
+        const int floors = 100;
+    #endif
+    #ifdef PEOPLE
+        const int people = PEOPLE;
+    #else
+        const int people = 50;
+    #endif
+    #ifdef LOG
+        char buf[100];
+        sprintf(buf, "f%d.p%d.d%d.log", floors, people, elevatorDelay);
+        log_file = fopen(buf, "w");
+    #endif
 	ElevatorTest(floors, people);
-#if defined(LOG) && defined(DEVELOPMEMT)
-    fprintf(log_file, "main yielding\n");
-#endif
+    #if defined(LOG) && defined(DEVELOPMEMT)
+        fprintf(log_file, "main yielding\n");
+    #endif
     for(int j =0 ; j< 100000; j++) {
         currentThread->Yield();
 
     }
-
-#ifdef LOG
-    fflush(log_file);
-#endif
+    #ifdef LOG
+        fflush(log_file);
+    #endif
     while (1) {
         currentThread->Yield();
-#ifdef LOG
+    #ifdef LOG
         fflush(log_file);
-#endif
+    #endif
     }
 #endif
 
