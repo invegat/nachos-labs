@@ -32,14 +32,14 @@ bool ELEVATOR::removeFromPPFirst(Person * p[]) {
     return false;
 }
 static int personCount(Person *p[]) {
-		int i = 0;
-		int totalOn = 0;
-		while (p[i] != NULL) {
-			if (p[i] != (Person *)-1)
-				totalOn++;
-			i++;
-		}		
-	return totalOn;
+    int i = 0;
+    int totalOn = 0;
+    while (p[i] != NULL) {
+        if (p[i] != (Person *)-1)
+            totalOn++;
+        i++;
+    }
+    return totalOn;
 }
 static int active(int pE) {
     ELEVATOR * e = *(ELEVATOR **)pE;
@@ -71,10 +71,29 @@ void ELEVATOR::addToPP(Person *pp[], Person * p) {
     }
     personLock->Release();
 }
+//void ELEVATOR::removeFromPP(Person * pp[], Person * p) {
+//    personLock->Acquire();
+//    for(int i=0;i<tp;i++) {
+//        if (pp[i] == p) {
+//            if (pp[i+1] == NULL)
+//                pp[i] = NULL;
+//            else
+//                pp[i] = (Person *)-1;
+//            break;
+//        }
+//    }
+////    printf("removeFromPP personCount is %d\n", personCount(pp));
+//    personLock->Release();
+//
+//}
 void ELEVATOR::removeFromPP(Person * pp[], Person * p) {
     personLock->Acquire();
+//    if (pp == this->personsOn && p->id == 9)
+//        printf("personsOn person being removed is %d\n", p->id);
+    bool success = false;
     for(int i=0;i<tp;i++) {
         if (pp[i] == p) {
+            success = true;
             if (pp[i+1] == NULL)
                 pp[i] = NULL;
             else
@@ -82,10 +101,13 @@ void ELEVATOR::removeFromPP(Person * pp[], Person * p) {
             break;
         }
     }
+    ASSERT(success);
 //    printf("removeFromPP personCount is %d\n", personCount(pp));
     personLock->Release();
 
 }
+
+
 bool ELEVATOR::onElevator(Person * target) {
     for (int i = 0;i<tp;i++) {
         if (target == personsOn[i])
@@ -189,11 +211,11 @@ void ELEVATOR::start() {
     Thread* t = new Thread("Halt Thread");
     t->Fork(haltTest, (int)&e);
 #endif
-	
+
     while(1) {
 
         // A. Wait until hailed
-		
+
         //      0. Acquire elevatorLock
 //        bool elevatorCaptured = false;
         elevatorLock->Acquire();
@@ -225,8 +247,8 @@ void ELEVATOR::start() {
             for(int j =0 ; j< elevatorDelay; j++) {
                 currentThread->Yield();
             }
-        //      4. Go to next 
-		bool suppressPrint = false;
+        //      4. Go to next
+        bool suppressPrint = false;
 //        bool floorCaptured = false;
 
         if (from == -1 && to == -1) {
@@ -236,7 +258,7 @@ void ELEVATOR::start() {
                 currentFloor--;
         }
 
-		if ((from > 0) && (to == -1 || (abs(to - currentFloor) > abs(from - currentFloor))) && (occupancy < maxOccupancy)   ) {
+        if ((from > 0) && (to == -1 || (abs(to - currentFloor) > abs(from - currentFloor))) && (occupancy < maxOccupancy)   ) {
             /*
 			if (currentFloor > from)
 				currentFloor--;
@@ -247,7 +269,7 @@ void ELEVATOR::start() {
 //				from = 0;
                 for(int j =0 ; j< 1000000; j++) {
                     currentThread->Yield();
-                }				
+                }
 			}
              */
 //            while (currentFloor != from){
@@ -270,7 +292,7 @@ void ELEVATOR::start() {
                 from = -1;
             }
         }
-		else if (to > 0) {
+        else if (to > 0) {
             /*
 			if (currentFloor > to)
 				currentFloor--;
@@ -299,18 +321,18 @@ void ELEVATOR::start() {
 //                printf("%d dequed by Broadcast\n", i);
                 to = -1;
             }
-		}
+        }
 //        if (floorCaptured)
 //        floorLock->Release();
-		if (!suppressPrint) {
-			if (currentFloor != pf) {
-	        	printf("Elevator arrives on floor %d\n", currentFloor );
+        if (!suppressPrint) {
+            if (currentFloor != pf) {
+                printf("Elevator arrives on floor %d\n", currentFloor );
 #ifdef LOG
                 fprintf(log_file, "Elevator arrives on floor %d\n", currentFloor );
 #endif
-				pf = currentFloor;
-			}
-		}
+                pf = currentFloor;
+            }
+        }
 //        if (elevatorCaptured)
 //            printf("Elevator Captured\n");
         //      2.5 Release elevatorLock
@@ -337,7 +359,7 @@ void ElevatorThread(int numFloors) {
 }
 
 ELEVATOR::ELEVATOR(int lNumFloors) {
-	numFloors = lNumFloors;
+    numFloors = lNumFloors;
     currentFloor = 1;
     entering = new Condition*[numFloors + 1];
     leaving = new Condition*[numFloors + 1];
@@ -355,15 +377,15 @@ ELEVATOR::ELEVATOR(int lNumFloors) {
 
     elevatorLock = new Lock("ElevatorLock");
 
-    // Initialize 
+    // Initialize
     for (int j = 1; j < numFloors + 1; j++) {
         leaving[j] = new Condition("Leaving " + j);
     }
-	//personsOn = new Person*[tp]; // limited to 100 student/teachers
-	personsOn[0] = (Person *)NULL;
-	up = true;
-	maxOccupancy = 5;
-	// eTimer = new Timer(freeElevatorLock, (int)(&e), false);
+    //personsOn = new Person*[tp]; // limited to 100 student/teachers
+    personsOn[0] = (Person *)NULL;
+    up = true;
+    maxOccupancy = 5;
+    // eTimer = new Timer(freeElevatorLock, (int)(&e), false);
     personLock = new Lock("Person Lock");
     conditionLock = new Lock("ConditionLock");
 //    floorLock = new Lock("Floor Lock");
@@ -378,11 +400,11 @@ void Elevator(int lNumFloors) {
 }
 
 int getPersonID() {
-	int personID = nextPersonID;
-	personIDLock->Acquire();
-	nextPersonID++;
-	personIDLock->Release();
-	return personID;
+    int personID = nextPersonID;
+    personIDLock->Acquire();
+    nextPersonID++;
+    personIDLock->Release();
+    return personID;
 }
 void ELEVATOR::hailElevator(Person *p) {
     IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
@@ -398,15 +420,15 @@ void ELEVATOR::hailElevator(Person *p) {
 //        currentThread->Yield();
 //    }
     // 2. Hail Elevator
-	// elevatorLock->Release();
+    // elevatorLock->Release();
     // 2.5 Acquire elevatorLock;
-	elevatorLock->Acquire();
+    elevatorLock->Acquire();
 //    floorLock->Acquire();
     // 3. Wait for elevator to arrive atFloor [entering[p->atFloor]->wait(elevatorLock)]
-	entering[p->atFloor]->Wait(elevatorLock);
+    entering[p->atFloor]->Wait(elevatorLock);
 //    printf("p->atFloor = %d\n", p->atFloor);
     // 5. Get into elevator
-	addToPP(personsOn,p);
+    addToPP(personsOn,p);
     ASSERT(p->atFloor == currentFloor);
 //    printf("Person %d got into the elevator at floor %d.\n", p->id, currentFloor);
     printf("Person %d got into the elevator.\n", p->id);
@@ -414,17 +436,17 @@ void ELEVATOR::hailElevator(Person *p) {
     fprintf(log_file, "Person %d got into the elevator.\n", p->id);
 #endif
     // 6. Decrement persons waiting atFloor [personsWaiting[atFloor]++]
-	personsWaiting[p->atFloor]--;
+    personsWaiting[p->atFloor]--;
     addToPP(listLeaving[p->toFloor],p);
 //    floorLock->Release();
 //    sleep(1);
 //    floorLock->Acquire();
     // 7. Increment persons inside elevator [occupancy++]
-	occupancy++;
+    occupancy++;
     // 8. Wait for elevator to reach toFloor [leaving[p->toFloor]->wait(elevatorLock)]
-	leaving[p->toFloor]->Wait(elevatorLock);
+    leaving[p->toFloor]->Wait(elevatorLock);
     // 9. Get out of the elevator
-	removeFromPP(personsOn,p);
+    removeFromPP(personsOn,p);
 
     ASSERT(currentFloor == p->toFloor);
     printf("Person %d got out of the elevator.\n", p->id);
@@ -434,10 +456,10 @@ void ELEVATOR::hailElevator(Person *p) {
     totalOut++;
 
     // 10. Decrement persons inside elevator
-	occupancy--;
+    occupancy--;
     // 11. Release elevatorLock;
 //    floorLock->Release();
-	elevatorLock->Release();
+    elevatorLock->Release();
 
 //    testHalt((int)&e);
 //    printf("total of %d out %d\n",totalIn, totalIn - totalOut);
@@ -458,7 +480,7 @@ void PersonThread(int person) {
     fprintf(log_file, "Person %d wants to go from floor %d to %d\n", p->id, p->atFloor, p->toFloor);
 #endif
     e->hailElevator(p);
-   (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
+    (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
 }
 
 int getNextPersonID() {
@@ -481,6 +503,6 @@ void ArrivingGoingFromTo(int atFloor, int toFloor) {
     // Creates Person Thread
     Thread *t = new Thread("Person " + p->id);
     t->Fork(PersonThread, (int)p);
-   (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
+    (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
 
 }
