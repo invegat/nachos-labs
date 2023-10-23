@@ -10,11 +10,24 @@
 // All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
+
 #ifndef ADDRSPACE_H
 #define ADDRSPACE_H
+class MemoryManager;
+class Lock;
+class AddrSpace;
+class PCB;
 
-#include "copyright.h"
-#include "filesys.h"
+#ifdef __JETBRAINS_IDE__
+    #include "../threads/copyright.h"
+    #include "../filesys/openfile.h"
+    #include "../machine/translate.h"
+    #include "../machine/machine.h"
+#else
+    #include "copyright.h"
+    #include "filesys.h"
+#endif
+#include "memorymanager.h"
 #include "pcb.h"
 
 #define UserStackSize		1024 	// increase this as necessary!
@@ -22,6 +35,7 @@
 class AddrSpace {
   public:
     AddrSpace(OpenFile *executable);	// Create an address space,
+    AddrSpace(OpenFile *executable, PCB * pcb);	// Create an address space,
 					// initializing it with the program
 					// stored in the file "executable"
     AddrSpace(AddrSpace* space); // Create an address space,
@@ -45,7 +59,7 @@ class AddrSpace {
     TranslationEntry *pageTable;	// Assume linear page table translation
 					// for now!
     unsigned int numPages;		// Number of pages in the virtual
-					// address space
+			
 };
 
 #endif // ADDRSPACE_H

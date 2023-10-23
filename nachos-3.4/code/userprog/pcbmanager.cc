@@ -5,10 +5,11 @@ PCBManager::PCBManager(int maxProcesses) {
 
     bitmap = new BitMap(maxProcesses);
     pcbs = new PCB*[maxProcesses];
-
+    pcbManagerLock = new Lock("PCB Manager Lock") ;
     for(int i = 0; i < maxProcesses; i++) {
         pcbs[i] = NULL;
     }
+    count = maxProcesses;
 
 }
 
@@ -25,6 +26,7 @@ PCBManager::~PCBManager() {
 PCB* PCBManager::AllocatePCB() {
 
     // Aquire pcbManagerLock
+    pcbManagerLock->Acquire();
 
     int pid = bitmap->Find();
 
@@ -33,27 +35,31 @@ PCB* PCBManager::AllocatePCB() {
     ASSERT(pid != -1);
 
     pcbs[pid] = new PCB(pid);
-
+    pcbManagerLock->Release();
     return pcbs[pid];
-
 }
 
 
 int PCBManager::DeallocatePCB(PCB* pcb) {
 
     // Check is pcb is valid -- check pcbs for pcb->pid
+    if (pcb->pid < 0 || pcb->pid > bitmap->NumItems()) return -1;
 
      // Aquire pcbManagerLock
+    pcbManagerLock->Acquire();
 
     bitmap->Clear(pcb->pid);
+
+//    printf("pid %d %d\n", pcb->pid+1, bitmap->Test(pcb->pid)  );
 
     // Release pcbManagerLock
 
     int pid = pcb->pid;
 
-    delete pcbs[pid];
+//    delete pcb;
 
     pcbs[pid] = NULL;
+    pcbManagerLock->Release();
 
     return 0;
 
@@ -61,4 +67,12 @@ int PCBManager::DeallocatePCB(PCB* pcb) {
 
 PCB* PCBManager::GetPCB(int pid) {
     return pcbs[pid];
+}
+
+PCB* PCBManager::GetLastPCB() {
+    PCB * last = NULL;
+    for (int i=0;i<count;i++)
+        if (pcbs[i] != NULL)
+            last = pcbs[i];
+    return last;
 }

@@ -57,6 +57,9 @@
 #endif
 #include <stdlib.h> // for -rs switch srand
 // #endif
+
+class Thread;
+
 #include <string.h>
 
 
@@ -76,7 +79,7 @@ int testnum = 4;
 #endif
 
 #ifndef ELEVATOR_DELAY
-const int elevatorDelay = 20000;
+const int elevatorDelay = 1000000;
 #else
 const int elevatorDelay = ELEVATOR_DELAY;
 #endif
@@ -113,6 +116,13 @@ extern void Ping(void);
 //		ex: "nachos -d +" -> argv = {"nachos", "-d", "+"}
 //----------------------------------------------------------------------
 
+#ifdef USER_PROGRAM
+// extern char __code_start;
+// extern char _GLOBAL_OFFSET_TABLE_[];
+//extern char noffH.initData.virtualAddr;
+//extern char noffH.initData.virtualAddr;
+extern char __bss_start;
+#endif
 int
 main(int argc, char **argv)
 {
@@ -120,6 +130,10 @@ main(int argc, char **argv)
 					// for a particular command
 
     DEBUG('t', "Entering main");
+#ifdef USER_PROGRAM
+//    printf("Loaded Program: [576] code | [16] data | [0] bss\n");
+#endif
+
 
     (void) Initialize(argc, argv);
 
@@ -136,19 +150,23 @@ main(int argc, char **argv)
         break;
       }
     }
-    int n = testnum;
+    #ifndef USER_PROGRAM
+        int n = testnum;
+    #endif
 #endif
 
-#if !defined(THREADS) && !defined(HW1_ELEVATOR)
+#ifndef USER_PROGRAM
+ #if !defined(THREADS) && !defined(HW1_ELEVATOR)
 	Ping();
-#else
-    #ifdef CHANGED
+ #else
+    #if defined(CHANGED) && defined(THREADS)
 	    #ifndef HW1_ELEVATOR
 //		    SemaphorePing();
 //		    LockTest();
     	    ThreadTest(n);
         #endif
     #endif
+ #endif
 #endif
 
 

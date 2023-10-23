@@ -1,0 +1,59 @@
+
+#ifndef ELEVATOR_H
+#define ELEVATOR_H
+#ifdef __JETBRAINS_IDE__
+#include "synch.h"
+#include <stdio.h>
+#include "utility.h"
+#endif
+#include<unistd.h>
+#include "copyright.h"
+
+const int tp = 100;
+
+void Elevator(int numFloors);
+void ArrivingGoingFromTo(int atFloor, int toFloor);
+
+typedef struct Person {
+    int id;
+    int atFloor;
+    int toFloor;
+} Person;
+
+const int maxOccupancy = 5;
+
+class ELEVATOR {
+
+public:
+    ELEVATOR(int numFloors);
+    ~ELEVATOR();
+    bool hailElevator(Person *p);
+    void start();
+
+    int *personsWaiting;
+    int occupancy;
+	int numFloors;
+    Person *personsOn[tp];
+    Lock *elevatorLock;
+    Person ***listEntering;
+    Person ***listLeaving;
+    int currentFloor;
+
+private:
+    Condition **entering;
+    Condition **leaving;
+    // int maxOccupancy;
+	bool up;
+	Timer * eTimer;
+    bool addToPP(Person * pp[], Person * p);
+    void removeFromPP(Person * pp[], Person * p);
+    Person * removeFromPPFirst(Person * pp[]);
+    Person * getPPFirst(Person * pp[]);
+    Lock * personLock;
+    Lock * conditionLock;
+//    Lock *floorLock;
+    int getFloor(Person ** pp[], bool at);
+    bool onElevator(Person * p);
+};
+
+#endif

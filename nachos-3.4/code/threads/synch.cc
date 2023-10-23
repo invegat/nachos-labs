@@ -21,6 +21,8 @@
 // All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
+class Thread;
+class Condition;
 
 #include "copyright.h"
 #include "system.h"
@@ -37,10 +39,12 @@
 //----------------------------------------------------------------------
 #ifdef __JETBRAINS_IDE__
 // Stuff that only clion will see goes here
-#define EXTERN_LOCKS
-#define EXTERN_SEMAPHORES
-#include "../machine/interrupt.h"
+    #define EXTERN_LOCKS
+    #define EXTERN_SEMAPHORES
+    #include "../machine/interrupt.h"
 #endif
+
+
 #if defined(HW1_SEMAPHORES) || defined(EXTERN_SEMAPHORES)
 Semaphore::Semaphore(const char* debugName, int initialValue)
 {
@@ -185,7 +189,7 @@ bool Lock::isHeldByCurrentThread() {
 Condition::Condition(const char* debugName) {
     name = debugName; // init
     queue =  new List();
-    queueLock = new Lock("Queue Lcck");
+    queueLock = new Lock("Queue Lock");
 }
 Condition::~Condition() {
     delete queue;

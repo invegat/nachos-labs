@@ -1,11 +1,15 @@
 #ifndef PCB_H
 #define PCB_H
-
-#include "list.h"
-#include "pcbmanager.h"
-
 class Thread;
 class PCBManager;
+
+#ifdef __JETBRAINS_IDE__
+#include "../threads/list.h"
+#else
+#include "list.h"
+#endif
+#include "pcbmanager.h"
+
 extern PCBManager* pcbManager;
 
 class PCB {

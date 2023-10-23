@@ -1,0 +1,207 @@
+Elevator with 20 floors was created!
+elevatorDelay: 1000000
+Elevator arrives on floor 2
+Person 1 wants to go from floor 5 to 13
+Person 2 wants to go from floor 6 to 20
+Elevator arrives on floor 3
+Person 3 wants to go from floor 5 to 3
+Person 4 wants to go from floor 15 to 16
+Person 5 wants to go from floor 6 to 16
+Elevator arrives on floor 4
+Person 6 wants to go from floor 8 to 2
+Elevator arrives on floor 5
+Person 3 got into the elevator.
+Person 1 got into the elevator.
+Person 7 wants to go from floor 6 to 12
+Person 8 wants to go from floor 17 to 14
+Elevator arrives on floor 6
+Person 7 got into the elevator.
+Person 2 got into the elevator.
+Person 5 got into the elevator.
+Person 9 wants to go from floor 19 to 20
+Person 10 wants to go from floor 15 to 16
+Elevator arrives on floor 5
+Person 11 wants to go from floor 6 to 12
+Person 12 wants to go from floor 12 to 19
+Elevator arrives on floor 4
+Person 13 wants to go from floor 13 to 16
+Person 14 wants to go from floor 9 to 13
+Elevator arrives on floor 3
+Person 3 got out of the elevator.
+Person 15 wants to go from floor 12 to 1
+Person 16 wants to go from floor 2 to 6
+Elevator arrives on floor 4
+Person 17 wants to go from floor 4 to 1
+Person 18 wants to go from floor 15 to 3
+Elevator arrives on floor 5
+Person 19 wants to go from floor 7 to 14
+Person 20 wants to go from floor 9 to 16
+Elevator arrives on floor 6
+Elevator arrives on floor 7
+Elevator arrives on floor 8
+Person 6 got into the elevator.
+Elevator arrives on floor 9
+Elevator arrives on floor 10
+Elevator arrives on floor 11
+Elevator arrives on floor 12
+Person 7 got out of the elevator.
+Elevator arrives on floor 13
+Person 1 got out of the elevator.
+Elevator arrives on floor 14
+Elevator arrives on floor 15
+Elevator arrives on floor 16
+Person 5 got out of the elevator.
+Elevator arrives on floor 17
+Elevator arrives on floor 18
+Elevator arrives on floor 19
+Elevator arrives on floor 20
+Person 2 got out of the elevator.
+Elevator arrives on floor 19
+Elevator arrives on floor 18
+Elevator arrives on floor 17
+Elevator arrives on floor 16
+Elevator arrives on floor 15
+Elevator arrives on floor 14
+Elevator arrives on floor 13
+Elevator arrives on floor 12
+Elevator arrives on floor 11
+Elevator arrives on floor 10
+Elevator arrives on floor 9
+Person 14 got into the elevator.
+Person 20 got into the elevator.
+Elevator arrives on floor 8
+Elevator arrives on floor 7
+Person 19 got into the elevator.
+Elevator arrives on floor 6
+Person 11 got into the elevator.
+Elevator arrives on floor 5
+Elevator arrives on floor 4
+Elevator arrives on floor 3
+Elevator arrives on floor 2
+Person 6 got out of the elevator.
+Elevator arrives on floor 3
+Elevator arrives on floor 4
+Person 17 got into the elevator.
+Elevator arrives on floor 5
+Elevator arrives on floor 6
+Elevator arrives on floor 7
+Elevator arrives on floor 8
+Elevator arrives on floor 9
+Elevator arrives on floor 10
+Elevator arrives on floor 11
+Elevator arrives on floor 12
+Person 11 got out of the elevator.
+Elevator arrives on floor 13
+Person 14 got out of the elevator.
+Elevator arrives on floor 14
+Person 19 got out of the elevator.
+Elevator arrives on floor 15
+Elevator arrives on floor 16
+Person 20 got out of the elevator.
+Elevator arrives on floor 15
+Elevator arrives on floor 14
+Elevator arrives on floor 13
+Elevator arrives on floor 12
+Elevator arrives on floor 11
+Elevator arrives on floor 10
+Elevator arrives on floor 9
+Elevator arrives on floor 8
+Elevator arrives on floor 7
+Elevator arrives on floor 6
+Elevator arrives on floor 5
+Elevator arrives on floor 4
+Elevator arrives on floor 3
+Elevator arrives on floor 2
+Person 16 got into the elevator.
+Elevator arrives on floor 1
+Person 17 got out of the elevator.
+Elevator arrives on floor 2
+Elevator arrives on floor 3
+Elevator arrives on floor 4
+Elevator arrives on floor 5
+Elevator arrives on floor 6
+Person 16 got out of the elevator.
+Elevator arrives on floor 7
+Elevator arrives on floor 8
+Elevator arrives on floor 9
+Elevator arrives on floor 10
+Elevator arrives on floor 11
+Elevator arrives on floor 12
+Person 12 got into the elevator.
+Person 15 got into the elevator.
+Elevator arrives on floor 13
+Person 13 got into the elevator.
+Elevator arrives on floor 14
+Elevator arrives on floor 15
+Person 4 got into the elevator.
+Person 10 got into the elevator.
+Elevator arrives on floor 16
+Elevator arrives on floor 17
+Elevator arrives on floor 18
+Elevator arrives on floor 19
+Person 12 got out of the elevator.
+Elevator arrives on floor 18
+Elevator arrives on floor 17
+Elevator arrives on floor 16
+Person 13 got out of the elevator.
+Person 4 got out of the elevator.
+Person 10 got out of the elevator.
+Elevator arrives on floor 15
+Person 18 got into the elevator.
+Elevator arrives on floor 16
+Elevator arrives on floor 17
+Person 8 got into the elevator.
+Elevator arrives on floor 18
+Elevator arrives on floor 19
+Person 9 got into the elevator.
+Elevator arrives on floor 18
+Elevator arrives on floor 17
+Elevator arrives on floor 16
+Elevator arrives on floor 15
+Elevator arrives on floor 14
+Elevator arrives on floor 13
+Elevator arrives on floor 12
+Elevator arrives on floor 11
+Elevator arrives on floor 10
+Elevator arrives on floor 9
+Elevator arrives on floor 8
+Elevator arrives on floor 7
+Elevator arrives on floor 6
+Elevator arrives on floor 5
+Elevator arrives on floor 4
+Elevator arrives on floor 3
+Elevator arrives on floor 2
+Elevator arrives on floor 1
+Person 15 got out of the elevator.
+Elevator arrives on floor 2
+Elevator arrives on floor 3
+Person 18 got out of the elevator.
+Elevator arrives on floor 4
+Elevator arrives on floor 5
+Elevator arrives on floor 6
+Elevator arrives on floor 7
+Elevator arrives on floor 8
+Elevator arrives on floor 9
+Elevator arrives on floor 10
+Elevator arrives on floor 11
+Elevator arrives on floor 12
+Elevator arrives on floor 13
+Elevator arrives on floor 14
+Person 8 got out of the elevator.
+Elevator arrives on floor 15
+Elevator arrives on floor 16
+Elevator arrives on floor 17
+Elevator arrives on floor 18
+Elevator arrives on floor 19
+Elevator arrives on floor 20
+Person 9 got out of the elevator.
+Elevator arrives on floor 19
+Elevator arrives on floor 18
+Elevator arrives on floor 17
+Elevator arrives on floor 16
+Elevator arrives on floor 15
+Elevator arrives on floor 14
+Elevator arrives on floor 13
+Elevator arrives on floor 12
+Elevator arrives on floor 11
+Elevator arrives on floor 10

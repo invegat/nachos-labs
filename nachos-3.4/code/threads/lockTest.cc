@@ -1,4 +1,5 @@
-﻿
+﻿class Thread;
+
 #include "copyright.h"
 #include "system.h"
 #include "synch.h"

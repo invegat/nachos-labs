@@ -14,6 +14,8 @@
 // All rights reserved.  See copyright.h for copyright notice and limitation 
 // of liability and disclaimer of warranty provisions.
 
+class Thread;
+
 #include "copyright.h"
 #include "thread.h"
 #include "switch.h"

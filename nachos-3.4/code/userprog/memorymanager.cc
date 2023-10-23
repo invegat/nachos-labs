@@ -1,12 +1,17 @@
 
+#ifdef __JETBRAINS_IDE__
+    #include "../machine/machine.h"
+#else
+    #include "machine.h"
+#endif
 
 #include "memorymanager.h"
-#include "machine.h"
 
 
 MemoryManager::MemoryManager() {
 
     bitmap = new BitMap(NumPhysPages);
+    lock = new Lock("mm lock");
 
 }
 
@@ -14,10 +19,15 @@ MemoryManager::MemoryManager() {
 MemoryManager::~MemoryManager() {
 
     delete bitmap;
+    delete lock;
 
 }
-
-
+int MemoryManager::getPage() {
+    return this->AllocatePage();
+}
+void MemoryManager::clearPage(int pageId) {
+    bitmap->Clear(pageId);
+}
 int MemoryManager::AllocatePage() {
 
     return bitmap->Find();

@@ -1,6 +1,8 @@
 // Alternate two threads, one that prints "ping" and another that
 // prints "pong".
 
+class Thread;
+
 #include "copyright.h"
 #include "system.h"
 #include "synch.h"

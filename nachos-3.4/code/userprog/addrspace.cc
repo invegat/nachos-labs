@@ -14,14 +14,30 @@
 // Copyright (c) 1992-1993 The Regents of the University of California.
 // All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
-
-#include "copyright.h"
-#include "system.h"
+#ifdef __JETBRAINS_IDE__
+    #include "../threads/copyright.h"
+    #include "../threads/system.h"
+    #include "../bin/noff.h"
+    #include "../machine/machine.h"
+    #include <cstdlib>
+#else
+    #include "copyright.h"
+    #include "system.h"
+    #include "noff.h"
+#endif
 #include "addrspace.h"
-#include "noff.h"
 #ifdef HOST_SPARC
 #include <strings.h>
 #endif
+
+
+//void bzero(char *p, int n) {
+//    for (int i = 0;i<n;i++) p[i] = '\0';
+//}
+//void bcopy(char *from, char *to, int n) { // assume no overlap between from 0-n and to 0-n
+//    ASSERT(abs(from - to) >= n);  // throw assert if overlap
+//    for (int i =0;i<n;i++) to[i] = from[i];
+//}
 
 //----------------------------------------------------------------------
 // SwapHeader
@@ -59,6 +75,7 @@ SwapHeader (NoffHeader *noffH)
 //
 //	"executable" is the file containing the object code to load into memory
 //----------------------------------------------------------------------
+
 
 AddrSpace::AddrSpace(OpenFile *executable)
 {
@@ -124,6 +141,77 @@ AddrSpace::AddrSpace(OpenFile *executable)
         ReadFile(executable, noffH.initData.inFileAddr, noffH.initData.virtualAddr, noffH.initData.size);
     }
     valid = true;
+    printf("Loaded Program: [%d] code | [%d] data | [%d] bss\n",
+           noffH.code.size, noffH.initData.size, noffH.uninitData.size );
+
+}
+AddrSpace::AddrSpace(OpenFile *executable,PCB * pcb_)
+{
+    NoffHeader noffH;
+    unsigned int i, size;
+
+    executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
+    if ((noffH.noffMagic != NOFFMAGIC) &&
+        (WordToHost(noffH.noffMagic) == NOFFMAGIC))
+        SwapHeader(&noffH);
+
+
+    if(noffH.noffMagic != NOFFMAGIC) {
+        valid = false;
+        return;
+    }
+
+// how big is address space?
+    size = noffH.code.size + noffH.initData.size + noffH.uninitData.size
+           + UserStackSize;	// we need to increase the size
+    // to leave room for the stack
+    numPages = divRoundUp(size, PageSize);
+    size = numPages * PageSize;
+
+    if(numPages > mm->GetFreePageCount()) {
+        valid = false;
+        return;
+    }
+
+    // Allocate a new PCB for the address space
+    pcb = pcb_;
+//    pcb->thread = currentThread;
+
+    DEBUG('a', "Initializing address space, num pages %d, size %d\n",
+          numPages, size);
+// first, set up the translation
+    pageTable = new TranslationEntry[numPages];
+    for (i = 0; i < numPages; i++) {
+        pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
+        pageTable[i].physicalPage = mm->AllocatePage();
+        pageTable[i].valid = TRUE;
+        pageTable[i].use = FALSE;
+        pageTable[i].dirty = FALSE;
+        pageTable[i].readOnly = FALSE;  // if the code segment was entirely on
+        // a separate page, we could set its
+        // pages to be read-only
+
+        // Zero out each page, to zero the unitialized data segment
+        // and the stack segment
+        unsigned int physicalPageAddress = (pageTable[i].physicalPage)*128;
+        bzero(&(machine->mainMemory[physicalPageAddress]), 128);
+    }
+
+    // then, copy in the code and data segments into memory
+    if (noffH.code.size > 0) {
+        DEBUG('a', "Initializing code segment, at 0x%x, size %d\n",
+              noffH.code.virtualAddr, noffH.code.size);
+        ReadFile(executable, noffH.code.inFileAddr, noffH.code.virtualAddr, noffH.code.size);
+    }
+    if (noffH.initData.size > 0) {
+        DEBUG('a', "Initializing data segment, at 0x%x, size %d\n",
+              noffH.initData.virtualAddr, noffH.initData.size);
+        ReadFile(executable, noffH.initData.inFileAddr, noffH.initData.virtualAddr, noffH.initData.size);
+    }
+    valid = true;
+    printf("Loaded Program: [%d] code | [%d] data | [%d] bss\n",
+           noffH.code.size, noffH.initData.size, noffH.uninitData.size );
+
 }
 
 
@@ -196,9 +284,15 @@ AddrSpace::AddrSpace(AddrSpace* space) {
 // 	Dealloate an address space.  Nothing for now!
 //----------------------------------------------------------------------
 
-AddrSpace::~AddrSpace()
-{
-   delete pageTable;
+AddrSpace::~AddrSpace() {
+
+    mmLock->Acquire();
+    for (unsigned int i = 0; i < numPages; i++) {
+        ASSERT(mm->DeallocatePage(pageTable[i].physicalPage) == 0);  // test if physicalPage is set
+    }
+    delete pageTable;
+    mmLock->Release();
+
 }
 
 //----------------------------------------------------------------------
@@ -242,7 +336,10 @@ AddrSpace::InitRegisters()
 //----------------------------------------------------------------------
 
 void AddrSpace::SaveState()
-{}
+{
+//    pageTable = machine->pageTable;
+//    numPages = machine->pageTableSize;
+}
 
 //----------------------------------------------------------------------
 // AddrSpace::RestoreState

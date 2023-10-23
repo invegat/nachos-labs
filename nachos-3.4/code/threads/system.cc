@@ -6,6 +6,8 @@
 // of liability and disclaimer of warranty provisions.
 
 
+class Lock;
+class Thread;
 
 #include "copyright.h"
 #include "system.h"

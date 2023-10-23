@@ -17,6 +17,8 @@
 #ifndef SYNCH_H
 #define SYNCH_H
 
+class Thread;
+
 #ifdef __JETBRAINS_IDE__
 #define HW1_ELEVATOR
 #endif

@@ -15,6 +15,9 @@
 //#include <ctime>
 //#include <atomic>
 //#endif
+
+class Thread;
+
 #include "copyright.h"
 #include "system.h"
 #if defined(HW1_SEMAPHORES) || defined(HW1_LOCKS)

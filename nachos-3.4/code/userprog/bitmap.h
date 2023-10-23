@@ -15,9 +15,15 @@
 #ifndef BITMAP_H
 #define BITMAP_H
 
-#include "copyright.h"
-#include "utility.h"
-#include "openfile.h"
+#ifdef __JETBRAINS_IDE__
+    #include "../threads/copyright.h"
+    #include "../threads/utility.h"
+    #include "../filesys/openfile.h"
+#else
+    #include "copyright.h"
+    #include "utility.h"
+    #include "openfile.h"
+#endif
 
 // Definitions helpful for representing a bitmap as an array of integers
 #define BitsInByte 	8
@@ -44,7 +50,7 @@ class BitMap {
 				// effect, set the bit. 
 				// If no bits are clear, return -1.
     int NumClear();		// Return the number of clear bits
-
+    int NumItems();
     void Print();		// Print contents of bitmap
     
     // These aren't needed until FILESYS, when we will need to read and 
@@ -58,6 +64,7 @@ class BitMap {
 					// (rounded up if numBits is not a
 					//  multiple of the number of bits in
 					//  a word)
+    int numItems;
     unsigned int *map;			// bit storage
 };
 

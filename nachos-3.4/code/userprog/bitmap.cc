@@ -5,8 +5,11 @@
 // Copyright (c) 1992-1993 The Regents of the University of California.
 // All rights reserved.  See copyright.h for copyright notice and limitation 
 // of liability and disclaimer of warranty provisions.
-
+#ifdef __JETBRAINS_IDE__
+#include "../threads/copyright.h"
+#else
 #include "copyright.h"
+#endif
 #include "bitmap.h"
 
 //----------------------------------------------------------------------
@@ -24,6 +27,7 @@ BitMap::BitMap(int nitems)
     map = new unsigned int[numWords];
     for (int i = 0; i < numBits; i++) 
         Clear(i);
+    numItems = nitems;
 }
 
 //----------------------------------------------------------------------
@@ -43,6 +47,10 @@ BitMap::~BitMap()
 //	"which" is the number of the bit to be set.
 //----------------------------------------------------------------------
 
+int
+BitMap::NumItems() {
+    return this->numItems;
+}
 void
 BitMap::Mark(int which) 
 { 

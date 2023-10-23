@@ -1,5 +1,10 @@
 #ifndef PCBMANAGER_H
 #define PCBMANAGER_H
+#ifdef __JETBRAINS_IDE__
+    #include "../threads/synch.h"
+#else
+    #include "synch.h"
+#endif
 
 #include "bitmap.h"
 #include "pcb.h"
@@ -15,12 +20,13 @@ class PCBManager {
         PCB* AllocatePCB();
         int DeallocatePCB(PCB* pcb);
         PCB* GetPCB(int pid);
+        PCB* GetLastPCB();
 
     private:
         BitMap* bitmap;
         PCB** pcbs;
-        // Need a lock here
-        // Lock* pcbManagerLock;
+        Lock* pcbManagerLock;
+        int count;
 
 };
 

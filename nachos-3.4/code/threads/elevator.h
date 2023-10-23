@@ -32,7 +32,7 @@ public:
 
     int *personsWaiting;
     int occupancy;
-	int numFloors;
+    int numFloors;
     Person *personsOn[tp];
     Lock *elevatorLock;
     Person ***listEntering;
@@ -43,8 +43,8 @@ private:
     Condition **entering;
     Condition **leaving;
     int maxOccupancy;
-	bool up;
-	Timer * eTimer;
+    bool up;
+    Timer * eTimer;
     void addToPP(Person * pp[], Person * p);
     void removeFromPP(Person * pp[], Person * p);
     bool removeFromPPFirst(Person * pp[]);

@@ -12,11 +12,19 @@ PCB::PCB(int id) {
 }
 
 
+void decspn(int arg) {
+    PCB* pcb = (PCB*)arg;
+    if (pcb == NULL) return;
+    if (pcb->HasExited()) pcbManager->DeallocatePCB(pcb);
+//    if (pcb->HasExited()) delete pcb;
+    else pcb->parent = NULL;
+}
+
 
 PCB::~PCB() {
-
+    // children->Mapcar(decspn);
     delete children;
-
+    // pcbManager->DeallocatePCB(this);
 }
 
 
@@ -30,9 +38,7 @@ void PCB::AddChild(PCB* pcb) {
 
 
 int PCB::RemoveChild(PCB* pcb){
-
     return children->RemoveItem(pcb);
-
 }
 
 
@@ -41,11 +47,6 @@ bool PCB::HasExited() {
 }
 
 
-void decspn(int arg) {
-    PCB* pcb = (PCB*)arg;
-    if (pcb->HasExited()) pcbManager->DeallocatePCB(pcb);
-    else pcb->parent = NULL;
-}
 
 
 void PCB::DeleteExitedChildrenSetParentNull() {
