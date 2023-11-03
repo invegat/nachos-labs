@@ -173,7 +173,7 @@ AddrSpace::AddrSpace(OpenFile *executable,PCB * pcb_)
         return;
     }
 
-    // Allocate a new PCB for the address space
+    // use the pcb passed in
     pcb = pcb_;
 //    pcb->thread = currentThread;
 
@@ -249,7 +249,11 @@ AddrSpace::AddrSpace(AddrSpace* space) {
     mmLock->Acquire();
 
     // 2. Check if there is enough free memory to make the copy. IF not, fail
-    ASSERT(n <= mm->GetFreePageCount());
+    if (n > mm->GetFreePageCount()) {
+        valid = false;
+        return;
+    }
+
     // Change this to informiing caller that constructor failed using valid=false;
 
     // 3. Create a new pagetable of same size as source addr space

@@ -9,7 +9,6 @@ class PCBManager;
 #include "list.h"
 #endif
 #include "pcbmanager.h"
-
 extern PCBManager* pcbManager;
 
 class PCB {

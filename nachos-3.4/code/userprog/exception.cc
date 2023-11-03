@@ -24,6 +24,7 @@
     #include "../threads/copyright.h"
     #include "../threads/system.h"
     #include "../threads/synch.h"
+    #include "../threads/thread.h"
     #include "../filesys/filehdr.h"
 #else
     #include "copyright.h"
@@ -31,6 +32,9 @@
     #include "synch.h"
 #endif
 #include "syscall.h"
+
+Semaphore* yieldSemaphore = new Semaphore("Yield Semaphore", false);
+Semaphore* execSemaphore = new Semaphore("Exec Semaphore", false);
 
 //----------------------------------------------------------------------
 // ExceptionHandler
@@ -54,7 +58,7 @@
 //	"which" is the kind of exception.  The list of possible exceptions
 //	are in machine.h.
 //----------------------------------------------------------------------
-//Semaphore* childSync = new Semaphore("child sync", 0);
+Semaphore* childSync = new Semaphore("child sync", 0);
 
 
 void doExit(int status) {
@@ -64,13 +68,14 @@ void doExit(int status) {
     int pid = pcb->pid;
 
     printf("System Call: [%d] invoked [Exit]\n", pid);
-    fflush(stdout);
 
 
     // Manage PCB memory As a parent process
 
     // Delete exited children and set parent null for non-exited ones
+
     currentThread->space->pcb->exitStatus = status;
+    scheduler->RemoveThread(pcb->thread);
     pcb->DeleteExitedChildrenSetParentNull();
 
     // Manage PCB memory As a child process
@@ -117,7 +122,8 @@ void childFunction(int pid) {
 //    printf("pid %d  PCReg %d  Pages %d\n", pid, pCReg, currentThread->space->GetNumPages());
     printf("Process [%d] Fork: start at address [%#x] with [%d] pages memory\n", pid, pCReg, currentThread->space->GetNumPages());
     fflush(stdout);
-//    childSync->V();
+    childSync->V();
+    execSemaphore->V();
 
     machine->Run();
 
@@ -126,19 +132,25 @@ void childFunction(int pid) {
 int doFork(int functionAddr) {
 //    printf("System Call: [%d] invoked Fork.\n", currentThread->space->pcb->pid);
     // 1. Check if sufficient memory exists to create new process
-    if (currentThread->space->GetNumPages() > mm->GetFreePageCount())
+    if (currentThread->space->GetNumPages() > mm->GetFreePageCount()) {
+        printf("Not Enough Memory for Child Process %d", currentThread->space->pcb->pid );
         return -1;
+    }
     // if check fails, return -1
-    printf("System Call: [%d] invoked Fork.\n",currentThread->space->pcb->pid);
-
     // 2. SaveUserState for the parent thread
     PCB* pcb = pcbManager->AllocatePCB();
     currentThread->SaveUserState();
+    printf("System Call: [%d] invoked Fork.\n",pcb->pid);
+    fflush(stdout);
 
     // 3. Create a new address space for child by copying parent address space
     // Parent: currentThread->space
 
     AddrSpace* childAddrSpace = new AddrSpace(currentThread->space);
+    if (!childAddrSpace->valid) {
+        printf("Could not create AddrSpace\n");
+        return -1;
+    }
 
     // 4. Create a new thread for the child and set its addrSpace
     Thread* childThread = new Thread("childThread");
@@ -161,10 +173,10 @@ int doFork(int functionAddr) {
     childThread->SaveUserState();
 
     // 7. Restore register state of parent user-level process
-    childThread->Fork(childFunction, pcb->pid);
     currentThread->RestoreUserState();
     // 8. Call thread->fork on Child
-//    childSync->P();
+    childThread->Fork(childFunction, pcb->pid);
+    childSync->P();
 
     return pcb->pid;
 
@@ -173,7 +185,8 @@ int doFork(int functionAddr) {
 int doExec(char* filename) {
 
     // Use progtest.cc:StartProcess() as a guide
-
+    yieldSemaphore->P(); // wait for Yield
+    execSemaphore->P();  // wait for ChildTread of fork
     // 1. Open the file and check validity
      OpenFile *executable = fileSystem->Open(filename);
      AddrSpace *space;
@@ -183,9 +196,17 @@ int doExec(char* filename) {
          return -1;
      }
     // 2. Delete current address space but store current PCB first if using in Step 5.
-     PCB* pcb = currentThread->space->pcb;
-     printf("Syscall Call: [%d] invoked Exec.\n", pcb->pid);
-     delete currentThread->space;
+     PCB *pcb = NULL;
+     if (currentThread->space != NULL) {
+         pcb = currentThread->space->pcb;
+         printf("Syscall Call: [%d] invoked Exec.\n", pcb->pid);
+         delete currentThread->space;
+         currentThread->space = NULL;
+     }
+     else {
+         delete executable;			// close file
+         return -1;
+     }
 
     // 3. Create new address space
      space = new AddrSpace(executable, pcb);
@@ -196,12 +217,12 @@ int doExec(char* filename) {
 
     // 5. Check if Addrspace creation was successful
      if(space->valid != true) {
-        printf("Could not create AddrSpace\n");
-        return -1;
+         printf("Could not create AddrSpace\n");
+         return -1;
      }
 
-    // 6. Set the PCB for the new addrspace - reused from deleted address space
-     space->pcb = pcb;
+    // 6. space->pcb was set in the constructor
+    // space->pcb = pcb;
 
     // 7. Set the addrspace for currentThread
      currentThread->space = space;
@@ -216,7 +237,7 @@ int doExec(char* filename) {
      // machine->Run();			// jump to the user progam
      // ASSERT(FALSE); // Execution never reaches here
 
-    return 1;
+    return pcb->pid;
 }
 
 
@@ -226,9 +247,10 @@ int doJoin(int pid) {
     PCB* joinPCB = pcbManager->GetPCB(pid);
 
     // 2. Check if pid is a child of current process
-     PCB* pcb = currentThread->space->pcb;
-     if (pcb == NULL) return -1;
-     if (pcb != joinPCB->parent) return -1;
+    PCB* pcb = currentThread->space->pcb;
+    if (pcb == NULL) return -1;
+    if (joinPCB == NULL) return -1;
+    if (pcb != joinPCB->parent) return -1;
 
     // 3. Yield until joinPCB has not exited
     while(!joinPCB->HasExited()) currentThread->Yield();
@@ -245,7 +267,8 @@ int doJoin(int pid) {
 
 
 int doKill (int pid) {
-
+    yieldSemaphore->P();
+    yieldSemaphore->P();
     printf("System Call: [%d] invoked Kill.\n", pid);
     // 1. Check if the pid is valid and if not, return -1
      PCB* pcb = pcbManager->GetPCB(pid);
@@ -253,17 +276,29 @@ int doKill (int pid) {
 
     // 2. IF pid is self, then just exit the process
      if (pcb == currentThread->space->pcb) {
-             doExit(0);
-             return 0;
+             doExit(0);  // never returns
+             ASSERT(false);
      }
+     int pcbPid = pcb->pid;
+    // 3. Valid kill, pid exists and not self - Set thread to be destroyed.
+    scheduler->RemoveThread(pcb->thread);
 
-    // 3. Valid kill, pid exists and not self, do cleanup similar to Exit
+    // 4. do cleanup similar to Exit
     // However, change references from currentThread to the target thread
     // pcb->thread is the target thread
+//    pcb->exitStatus = 0;
+//    if (pcb->parent != NULL)
+//        pcb->parent->DeleteExitedChildrenSetParentNull();
+//    else
+//        pcbManager->DeallocatePCB(pcb);
+//    delete pcb;
+    if (pcb->parent != NULL)
+        pcb->parent->RemoveChild(pcb);
+    pcb->DeleteExitedChildrenSetParentNull();
+    printf("Process [%d] killed process [%d]\n",currentThread->space->pcb->pid, pcbPid);
+    pcb->thread->setStatus(BLOCKED);
 
-    // 4. Set thread to be destroyed.
-    scheduler->RemoveThread(pcb->thread);
-    printf("Process [%d] killed process [%d]\n",pid, pcb->pid);
+//    pcb->thread->Finish();
     // 5. return 0 for success!
     return 0;
 }
@@ -273,8 +308,10 @@ int doKill (int pid) {
 void doYield() {
 //    PCB* pcb = pcbManager->GetLastPCB();
     PCB * pcb = currentThread->space->pcb;
-    printf("System Call: [%d] invoked Yield.\n", pcb->pid);
     currentThread->Yield();
+    printf("System Call: [%d] invoked Yield.\n", pcb->pid);
+    fflush(stdout);
+    yieldSemaphore->V();
 }
 
 
@@ -326,8 +363,7 @@ ExceptionHandler(ExceptionType which)
     } else if ((which == SyscallException) && (type == SC_Exec)) {
         int virtAddr = machine->ReadRegister(4);
         char* fileName = readString(virtAddr);
-        int ret = doExec(fileName);
-        machine->WriteRegister(2, ret);
+        doExec(fileName);
         incrementPC();
         machine->Run();
     } else if ((which == SyscallException) && (type == SC_Join)) {
@@ -338,6 +374,7 @@ ExceptionHandler(ExceptionType which)
         int ret = doKill(machine->ReadRegister(4));
         machine->WriteRegister(2, ret);
         incrementPC();
+//        machine->Run();
     } else if ((which == SyscallException) && (type == SC_Yield)) {
         doYield();
         incrementPC();

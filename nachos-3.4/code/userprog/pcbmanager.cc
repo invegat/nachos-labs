@@ -43,22 +43,25 @@ PCB* PCBManager::AllocatePCB() {
 int PCBManager::DeallocatePCB(PCB* pcb) {
 
     // Check is pcb is valid -- check pcbs for pcb->pid
-    if (pcb->pid < 0 || pcb->pid > bitmap->NumItems()) return -1;
+    if (pcb->pid < 0 || pcb->pid > bitmap->NumItems())
+        return -1;
 
      // Aquire pcbManagerLock
     pcbManagerLock->Acquire();
 
     bitmap->Clear(pcb->pid);
+//    pcb->exitStatus = -9999;
 
 //    printf("pid %d %d\n", pcb->pid+1, bitmap->Test(pcb->pid)  );
 
-    // Release pcbManagerLock
 
     int pid = pcb->pid;
 
-//    delete pcb;
+    delete pcb;
 
     pcbs[pid] = NULL;
+
+    // Release pcbManagerLock
     pcbManagerLock->Release();
 
     return 0;

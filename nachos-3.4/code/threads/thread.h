@@ -36,14 +36,19 @@
 
 #ifndef THREAD_H
 #define THREAD_H
-
+#ifdef __JETBRAINS_IDE__
+    #define USER_PROGRAM
+    #include "../machine/machine.h"
+    #include "../userprog/addrspace.h"
+#else
+    #ifdef USER_PROGRAM
+        #include "machine.h"
+        #include "addrspace.h"
+    #endif
+#endif
 #include "copyright.h"
 #include "utility.h"
 
-#ifdef USER_PROGRAM
-#include "machine.h"
-#include "addrspace.h"
-#endif
 
 // CPU register state to be saved on context switch.  
 // The SPARC and MIPS only need 10 registers, but the Snake needs 18.
@@ -53,11 +58,11 @@
 
 // Size of the thread's private execution stack.
 // WATCH OUT IF THIS ISN'T BIG ENOUGH!!!!!
-#define StackSize	(4 * 1024)	// in words
+#define StackSize	(16 * 1024)	// in words
 
 
 // Thread state
-enum ThreadStatus { JUST_CREATED, RUNNING, READY, BLOCKED };
+enum ThreadStatus { JUST_CREATED, RUNNING, READY, BLOCKED, DELETED };
 
 // external function, dummy routine whose sole job is to call Thread::Print
 extern void ThreadPrint(int arg);	 

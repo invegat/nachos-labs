@@ -1,5 +1,6 @@
 #include "pcb.h"
-
+#include "system.h"
+extern Thread *currentThread;			// the thread holding the CPU
 
 PCB::PCB(int id) {
 
@@ -8,15 +9,13 @@ PCB::PCB(int id) {
     children = new List();
     thread = NULL;
     exitStatus = -9999;
-
 }
 
 
 void decspn(int arg) {
+    ASSERT(arg != 0);
     PCB* pcb = (PCB*)arg;
-    if (pcb == NULL) return;
     if (pcb->HasExited()) pcbManager->DeallocatePCB(pcb);
-//    if (pcb->HasExited()) delete pcb;
     else pcb->parent = NULL;
 }
 
@@ -24,6 +23,17 @@ void decspn(int arg) {
 PCB::~PCB() {
     // children->Mapcar(decspn);
     delete children;
+    if (thread != NULL && thread != currentThread) {
+        if (thread->space != NULL) {
+            delete thread->space;
+            thread->space = NULL;
+        }
+        scheduler->RemoveThread(thread);
+        if (thread->getStatus() != DELETED)
+            delete thread;
+        thread = NULL;
+    }
+
     // pcbManager->DeallocatePCB(this);
 }
 
@@ -32,7 +42,6 @@ PCB::~PCB() {
 void PCB::AddChild(PCB* pcb) {
 
     children->Append(pcb);
-
 
 }
 
@@ -50,5 +59,6 @@ bool PCB::HasExited() {
 
 
 void PCB::DeleteExitedChildrenSetParentNull() {
-    children->Mapcar(decspn);
+    if (children != NULL)
+        children->Mapcar(decspn);
 }
