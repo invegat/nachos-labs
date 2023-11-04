@@ -32,10 +32,13 @@
     #include "synch.h"
 #endif
 #include "syscall.h"
+#undef SEMAPHORE
 
+#ifdef SEMAPHORE
 Semaphore* yieldSemaphore = new Semaphore("Yield Semaphore", false);
 Semaphore* execSemaphore = new Semaphore("Exec Semaphore", false);
-
+//Semaphore* forkSemaphore = new Semaphore("Fork Semaphore", false);
+#endif
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -58,10 +61,14 @@ Semaphore* execSemaphore = new Semaphore("Exec Semaphore", false);
 //	"which" is the kind of exception.  The list of possible exceptions
 //	are in machine.h.
 //----------------------------------------------------------------------
+#ifdef SEMAPHORE
 Semaphore* childSync = new Semaphore("child sync", 0);
+#endif
 
 
 void doExit(int status) {
+    if (currentThread->space->GetPageTable() == NULL)
+        return; // space was previously deleted
 
     PCB* pcb = currentThread->space->pcb;
 
@@ -111,6 +118,7 @@ void incrementPC() {
 
 void childFunction(int pid) {
 
+//    forkSemaphore->P();
     // 1. Restore the state of registers
     currentThread->RestoreUserState();
 
@@ -122,8 +130,10 @@ void childFunction(int pid) {
 //    printf("pid %d  PCReg %d  Pages %d\n", pid, pCReg, currentThread->space->GetNumPages());
     printf("Process [%d] Fork: start at address [%#x] with [%d] pages memory\n", pid, pCReg, currentThread->space->GetNumPages());
     fflush(stdout);
+#ifdef SEMAPHORE
     childSync->V();
     execSemaphore->V();
+#endif
 
     machine->Run();
 
@@ -176,7 +186,9 @@ int doFork(int functionAddr) {
     currentThread->RestoreUserState();
     // 8. Call thread->fork on Child
     childThread->Fork(childFunction, pcb->pid);
+#ifdef SEMAPHORE
     childSync->P();
+#endif
 
     return pcb->pid;
 
@@ -185,8 +197,10 @@ int doFork(int functionAddr) {
 int doExec(char* filename) {
 
     // Use progtest.cc:StartProcess() as a guide
+#ifdef SEMAPHORE
     yieldSemaphore->P(); // wait for Yield
     execSemaphore->P();  // wait for ChildTread of fork
+#endif
     // 1. Open the file and check validity
      OpenFile *executable = fileSystem->Open(filename);
      AddrSpace *space;
@@ -267,8 +281,10 @@ int doJoin(int pid) {
 
 
 int doKill (int pid) {
+#ifdef SEMAPHORE
     yieldSemaphore->P();
-    yieldSemaphore->P();
+    execSemaphore->P();
+#endif
     printf("System Call: [%d] invoked Kill.\n", pid);
     // 1. Check if the pid is valid and if not, return -1
      PCB* pcb = pcbManager->GetPCB(pid);
@@ -311,7 +327,9 @@ void doYield() {
     currentThread->Yield();
     printf("System Call: [%d] invoked Yield.\n", pcb->pid);
     fflush(stdout);
+#ifdef SEMAPHORE
     yieldSemaphore->V();
+#endif
 }
 
 

@@ -291,10 +291,12 @@ AddrSpace::AddrSpace(AddrSpace* space) {
 AddrSpace::~AddrSpace() {
 
     mmLock->Acquire();
+    ASSERT(pageTable != NULL);
     for (unsigned int i = 0; i < numPages; i++) {
         ASSERT(mm->DeallocatePage(pageTable[i].physicalPage) == 0);  // test if physicalPage is set
     }
     delete pageTable;
+    pageTable = NULL;
     mmLock->Release();
 
 }

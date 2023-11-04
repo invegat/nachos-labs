@@ -25,12 +25,11 @@ PCB::~PCB() {
     delete children;
     if (thread != NULL && thread != currentThread) {
         if (thread->space != NULL) {
-            delete thread->space;
+            if (thread->space->GetPageTable() != NULL)
+                delete thread->space;
             thread->space = NULL;
         }
         scheduler->RemoveThread(thread);
-        if (thread->getStatus() != DELETED)
-            delete thread;
         thread = NULL;
     }
 
